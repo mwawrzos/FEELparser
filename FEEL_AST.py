@@ -2,7 +2,18 @@ def default_printer(obj, indent):
     return '\t' * indent + obj.__repr__()  # + ' :: ' + obj.__class__()
 
 
-class AstNode(object):
+class NullAstNode(object):
+    def __repr__(self):
+        return self.pp(0)
+
+    def pp(self, indent):
+        return '%s%s' % ('\t' * indent, self.__class__)
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
+
+
+class AstNode(NullAstNode):
     def __init__(self, value=None):
         self.value = value
 
@@ -11,11 +22,10 @@ class AstNode(object):
 
     def pp(self, indent):
         pp = pretty_printer(self.value)
-        return '\t' * indent + "%s\n%s" % (self.__class__, pp(indent + 1))
+        return '%s%s\n%s' % ('\t' * indent, self.__class__, pp(indent + 1))
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ \
-               and self.value == other.value
+        return super(AstNode, self).__eq__(other) and self.value == other.value
 
 
 def pretty_printer(obj):
@@ -25,7 +35,7 @@ def pretty_printer(obj):
 
 class AstBinaryNode(AstNode):
     def __init__(self, key=None, value=None):
-        AstNode.__init__(self, value)
+        super(AstBinaryNode, self).__init__(value)
         self.key = key
 
     def __repr__(self):
@@ -34,14 +44,35 @@ class AstBinaryNode(AstNode):
     def pp(self, indent):
         kpp = pretty_printer(self.key)
         vpp = pretty_printer(self.value)
-        return indent * '\t' + "%s\n%s\n%s" % (self.__class__,
-                                               (kpp(indent + 1)),
-                                               (vpp(indent + 1)))
+        return "%s%s\n%s\n%s" % (indent * '\t',
+                                 self.__class__,
+                                 kpp(indent + 1),
+                                 vpp(indent + 1))
 
     def __eq__(self, other):
-        comparison = self.key == other.key and super(AstBinaryNode, self).__eq__(other)
-        # print "%s\n==\n%s\n= %s" % (self, other, comparison)
-        return comparison
+        return super(AstBinaryNode, self).__eq__(other) and self.key == other.key
+
+
+class AstTernaryNode(AstBinaryNode):
+    def __init__(self, expr=None, key=None, value=None):
+        super(AstTernaryNode, self).__init__(key, value)
+        self.expr = expr
+
+    def __repr__(self):
+        return self.pp(0)
+
+    def pp(self, indent):
+        epp = pretty_printer(self.expr)
+        kpp = pretty_printer(self.key)
+        vpp = pretty_printer(self.value)
+        return '%s%s\n%s\n%s\n%s' % (indent * '\t',
+                                     self.__class__,
+                                     epp(indent + 1),
+                                     kpp(indent + 1),
+                                     vpp(indent + 1))
+
+    def __eq__(self, other):
+        return super(AstTernaryNode, self).__eq__(other) and self.expr == other.expr
 
 
 # 1
@@ -54,6 +85,11 @@ class TextualExpression(AstNode):
     pass
 
 
+# 15
+class Null(NullAstNode):
+    pass
+
+
 # 33
 class Literal(AstNode):
     pass
@@ -61,6 +97,57 @@ class Literal(AstNode):
 
 # 34
 class SimpleLiteral(AstNode):
+    pass
+
+
+# 50
+class Conjunction(AstBinaryNode):
+    pass
+
+
+# 51
+class Comparison(AstNode):
+    pass
+
+
+# a
+class Eq(AstBinaryNode):
+    pass
+
+
+class Neq(AstBinaryNode):
+    pass
+
+
+class Lt(AstBinaryNode):
+    pass
+
+
+class Lte(AstBinaryNode):
+    pass
+
+
+class Gt(AstBinaryNode):
+    pass
+
+
+class Gte(AstBinaryNode):
+    pass
+
+
+# b
+
+class Between(AstTernaryNode):
+    pass
+
+
+# c
+class In(AstBinaryNode):
+    pass
+
+
+# 52
+class FilterExpression(AstBinaryNode):
     pass
 
 
