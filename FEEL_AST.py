@@ -103,7 +103,22 @@ class SimpleLiteral(AstNode):
     pass
 
 
-# 49
+# 45
+class PathExpression(AstBinaryNode):
+    pass
+
+
+# 46
+class ForExpression(AstBinaryNode):
+    pass
+
+
+# 47
+class IfExpression(AstTernaryNode):
+    pass
+
+
+# 48
 class QuantifiedExpression(AstBinaryNode):
     pass
 
@@ -116,12 +131,13 @@ class EveryQuantifiedExpression(QuantifiedExpression):
     pass
 
 
-# 50
-class Conjunction(AstBinaryNode):
+# 49
+class Disjunction(AstBinaryNode):
     pass
 
 
-class Disjunction(AstBinaryNode):
+# 50
+class Conjunction(AstBinaryNode):
     pass
 
 

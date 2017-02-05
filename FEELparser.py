@@ -10,15 +10,22 @@ def create_literal(literal, *args):
 
 class FeelParser:
     precedence = (
-        ('right', ')', 'EXTERNAL', 'SATISFIES'),
-        ('left', 'OR'),
-        ('left', 'AND'),
-        ('left', 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'),
-        ('left', 'BETWEEN'),
-        ('left', 'IN'),
-        ('left', 'INSTANCE'),
+        #        |   functions   |   for   |   if  | quantified |
+        ('right', ')', 'EXTERNAL', 'RETURN', 'ELSE', 'SATISFIES'),
+        #        | disjunction |
+        ('left',  'OR'),
+        #        | conjunction |
+        ('left',  'AND'),
+        #        | comparison a) |
+        ('left',  'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'),
+        #        | comparison b) |
+        ('left',  'BETWEEN'),
+        #        | comparison c) |
+        ('left',  'IN'),
+        #        | instance of |
+        ('left',  'INSTANCE'),
+        #        | filter expressions |
         ('right', '['),
-        ('left', '.'),
     )
 
     def __init__(self, **kwargs):
@@ -34,11 +41,13 @@ class FeelParser:
     # 2
     def p_textual_expression(self, p):
         """textual_expression : function_definition
+                              | for_expression
+                              | if_expression
                               | quantified_expression
                               | disjunction
                               | conjunction
-                              | instance_of
                               | comparison
+                              | instance_of
                               | filter_expression
                               | literal
                               | NAME"""
@@ -65,20 +74,16 @@ class FeelParser:
 
     # 20
     def p_qualified_name(self, p):
-        """qualified_name : names"""
+        """qualified_name : names
+                          | name"""
         p[0] = p[1]
 
     def p_names(self, p):
-        """names : many_names
-                 | one_name"""
-        p[0] = p[1]
-
-    def p_many_names(self, p):
-        """many_names : names '.' one_name"""
+        """names : qualified_name '.' name"""
         p[0] = p[1] + p[3]
 
-    def p_one_name(self, p):
-        """one_name : NAME"""
+    def p_name(self, p):
+        """name : NAME"""
         p[0] = [p[1]]
 
     # 33
@@ -96,6 +101,21 @@ class FeelParser:
     def p_parameter_name(self, p):
         """parameter_name : NAME"""
         p[0] = p[1]
+
+    # 45
+    # def p_path_expression(self, p):
+    #     """path_expression : expression '.' NAME"""
+    #     p[0] = PathExpression(p[1], p[3])
+
+    # 46
+    def p_for_expression(self, p):
+        """for_expression : FOR in_pairs RETURN expression"""
+        p[0] = ForExpression(p[2], p[4])
+
+    # 47
+    def p_if_expression(self, p):
+        """if_expression : IF expression THEN expression ELSE expression"""
+        p[0] = IfExpression(p[2], p[4], p[6])
 
     # 48
     def p_quantified_expression(self, p):

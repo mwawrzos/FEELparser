@@ -17,6 +17,11 @@ reserved = {
     'in': 'IN',
     'null': 'NULL',
     'satisfies': 'SATISFIES',
+    'if': 'IF',
+    'then': 'THEN',
+    'else': 'ELSE',
+    'for': 'FOR',
+    'return': 'RETURN',
 }
 
 tokens = [

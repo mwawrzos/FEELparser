@@ -5,12 +5,12 @@ from FEELparser import FeelParser
 from FEELlexer import lexer
 
 
-def function_definition(ALA_INSTANCE):
-    return Expression(TextualExpression(FunctionDefinition([], ALA_INSTANCE)))
+def function_definition(expression):
+    return Expression(TextualExpression(FunctionDefinition([], expression)))
 
 
-def txt_expr(comparison):
-    return Expression(TextualExpression(comparison))
+def txt_expr(expression):
+    return Expression(TextualExpression(expression))
 
 
 STRING_LITERAL = '""'
@@ -64,8 +64,15 @@ DISJUNCTION_EXPRESSION = function_definition(txt_expr(Disjunction(BETWEEN_EXPR,
                                                                   NAME_EXPRESSION)))
 
 SOME_EXPRESSION = txt_expr(SomeQuantifiedExpression([('name', STRING_EXPRESSION)], STRING_EXPRESSION))
+NAME_PAIRS = [('name', STRING_EXPRESSION), ('name', STRING_EXPRESSION)]
 EVERY_EXPRESSION = txt_expr(
-    EveryQuantifiedExpression([('name', STRING_EXPRESSION), ('name', STRING_EXPRESSION)], STRING_EXPRESSION))
+    EveryQuantifiedExpression(NAME_PAIRS, STRING_EXPRESSION))
+
+IF_EXPRESSION = txt_expr(IfExpression(STRING_EXPRESSION, STRING_EXPRESSION, STRING_EXPRESSION))
+
+FOR_EXPRESSION = txt_expr(ForExpression(NAME_PAIRS, STRING_EXPRESSION))
+
+PATH_EXPRESSION = txt_expr(PathExpression(STRING_EXPRESSION, 'name'))
 
 
 def COMPARISON(operator):
@@ -151,6 +158,19 @@ class TestStringMethods(unittest.TestCase):
         self.check_parser(
             'every %s in %s %s in %s satisfies %s' % ('name', STRING_LITERAL, 'name', STRING_LITERAL, STRING_LITERAL),
             EVERY_EXPRESSION)
+
+    def test_if_expression_is_expression(self):
+        self.check_parser('if %s then %s else %s' % (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL),
+                          IF_EXPRESSION)
+
+    def test_for_expression_is_expression(self):
+        self.check_parser(
+            'for %s in %s %s in %s return %s' % ('name', STRING_LITERAL, 'name', STRING_LITERAL, STRING_LITERAL),
+            FOR_EXPRESSION)
+
+    # def test_path_is_expression(self):
+    #     self.check_parser('%s.%s' % (STRING_LITERAL, 'name'),
+    #                       PATH_EXPRESSION)
 
     def test_name_is_expression(self):
         self.check_parser('name', NAME_EXPRESSION)
