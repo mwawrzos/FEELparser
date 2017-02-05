@@ -1,7 +1,7 @@
 # coding=utf-8
 from ply import lex
 
-from FEEL_AST import Eq, Neq, Lt, Lte, Gt, Gte
+from FEEL_AST import Eq, Neq, Lt, Lte, Gt, Gte, SomeQuantifiedExpression, EveryQuantifiedExpression
 
 reserved = {
     'date': 'DATE',
@@ -9,12 +9,14 @@ reserved = {
     'duration': 'DURATION',
     'function': 'FUNCTION',
     'and': 'AND',
+    'or': 'OR',
     'external': 'EXTERNAL',
     'instance': 'INSTANCE',
     'of': 'OF',
     'between': 'BETWEEN',
     'in': 'IN',
     'null': 'NULL',
+    'satisfies': 'SATISFIES',
 }
 
 tokens = [
@@ -25,7 +27,9 @@ tokens = [
              'LT',
              'LTE',
              'GT',
-             'GTE'
+             'GTE',
+             'SOME',
+             'EVERY',
          ] + reserved.values()
 
 literals = "()[]{}:.,="
@@ -40,6 +44,7 @@ t_NAME = NAME_START + r'(' + NAME_PART + ADDITIONAL_NAME_SYMBOLS + r')*'
 PARAMETER_NAME = t_NAME
 t_STRING_LITERAL = r'"[^"]*"'
 FORMAL_PARAMETER = PARAMETER_NAME
+
 
 def t_EQ(t):
     r'='
@@ -74,6 +79,18 @@ def t_GTE(t):
 def t_GT(t):
     r'>'
     t.value = Gt
+    return t
+
+
+def t_SOME(t):
+    r'some'
+    t.value = SomeQuantifiedExpression
+    return t
+
+
+def t_EVERY(t):
+    r'every'
+    t.value = EveryQuantifiedExpression
     return t
 
 

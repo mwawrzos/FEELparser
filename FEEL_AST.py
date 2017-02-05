@@ -12,6 +12,9 @@ class NullAstNode(object):
     def __eq__(self, other):
         return self.__class__ == other.__class__
 
+    def __ne__(self, other):
+        return not self == other
+
 
 class AstNode(NullAstNode):
     def __init__(self, value=None):
@@ -100,8 +103,25 @@ class SimpleLiteral(AstNode):
     pass
 
 
+# 49
+class QuantifiedExpression(AstBinaryNode):
+    pass
+
+
+class SomeQuantifiedExpression(QuantifiedExpression):
+    pass
+
+
+class EveryQuantifiedExpression(QuantifiedExpression):
+    pass
+
+
 # 50
 class Conjunction(AstBinaryNode):
+    pass
+
+
+class Disjunction(AstBinaryNode):
     pass
 
 

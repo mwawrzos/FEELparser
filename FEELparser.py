@@ -10,13 +10,15 @@ def create_literal(literal, *args):
 
 class FeelParser:
     precedence = (
-        ('right', ')', 'EXTERNAL'),
+        ('right', ')', 'EXTERNAL', 'SATISFIES'),
+        ('left', 'OR'),
         ('left', 'AND'),
         ('left', 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'),
         ('left', 'BETWEEN'),
         ('left', 'IN'),
         ('left', 'INSTANCE'),
         ('right', '['),
+        ('left', '.'),
     )
 
     def __init__(self, **kwargs):
@@ -32,6 +34,9 @@ class FeelParser:
     # 2
     def p_textual_expression(self, p):
         """textual_expression : function_definition
+                              | quantified_expression
+                              | disjunction
+                              | conjunction
                               | instance_of
                               | comparison
                               | filter_expression
@@ -65,12 +70,11 @@ class FeelParser:
 
     def p_names(self, p):
         """names : many_names
-                 | one_name
-                 | empty"""
+                 | one_name"""
         p[0] = p[1]
 
     def p_many_names(self, p):
-        """many_names : one_name '.' names"""
+        """many_names : names '.' one_name"""
         p[0] = p[1] + p[3]
 
     def p_one_name(self, p):
@@ -93,10 +97,34 @@ class FeelParser:
         """parameter_name : NAME"""
         p[0] = p[1]
 
+    # 48
+    def p_quantified_expression(self, p):
+        """quantified_expression : SOME  in_pairs SATISFIES expression
+                                 | EVERY in_pairs SATISFIES expression"""
+        p[0] = p[1](p[2], p[4])
+
+    def p_in_pairs(self, p):
+        """in_pairs : one_in_pair
+                    | many_in_pairs"""
+        p[0] = p[1]
+
+    def p_one_in_pair(self, p):
+        """one_in_pair : NAME IN expression"""
+        p[0] = [(p[1], p[3])]
+
+    def p_many_in_pairs(self, p):
+        """many_in_pairs : one_in_pair in_pairs"""
+        p[0] = p[1] + p[2]
+
+    # 49
+    def p_disjunction(self, p):
+        """disjunction : expression OR expression"""
+        p[0] = Disjunction(p[1], p[3])
+
     # 50
-    # def p_conjunction(self, p):
-    #     """conjunction : expression AND expression"""
-    #     p[0] = Conjunction(p[1], p[3])
+    def p_conjunction(self, p):
+        """conjunction : expression AND expression"""
+        p[0] = Conjunction(p[1], p[3])
 
     # 51
     def p_comparison(self, p):
@@ -118,8 +146,14 @@ class FeelParser:
 
     # b
     def p_between(self, p):
-        """between : expression BETWEEN expression AND expression"""
-        p[0] = Between(p[1], p[3], p[5])
+        """between : between1 AND expression"""
+        p[0] = p[1](p[3])
+
+    def p_between1(self, p):
+        """between1 : expression BETWEEN expression"""
+        expression = p[1]
+        lower_bound = p[3]
+        p[0] = lambda upper_bound: Between(expression, lower_bound, upper_bound)
 
     # c
     def p_in1(self, p):
@@ -250,14 +284,14 @@ class FeelParser:
         """date_and_time : DATE AND TIME"""
         p[0] = "date and time"
 
+    def p_empty(self, p):
+        """empty : """
+        p[0] = []
+
     def p_error(self, p):
         print 'Ill tok: %s' % p
 
     def parse(self, *args, **kwargs):
         return self.parser.parse(lexer=lexer, *args, **kwargs)
-
-    def p_empty(self, p):
-        """empty : """
-        p[0] = []
 
 # parser = yacc.yacc()

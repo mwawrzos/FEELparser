@@ -9,18 +9,22 @@ def function_definition(ALA_INSTANCE):
     return Expression(TextualExpression(FunctionDefinition([], ALA_INSTANCE)))
 
 
+def txt_expr(comparison):
+    return Expression(TextualExpression(comparison))
+
+
 STRING_LITERAL = '""'
 
-STRING_EXPRESSION = Expression(TextualExpression(Literal(SimpleLiteral(STRING_LITERAL))))
+STRING_EXPRESSION = txt_expr(Literal(SimpleLiteral(STRING_LITERAL)))
 DATE = DateLiteral(STRING_LITERAL)
 TIME = TimeLiteral(STRING_LITERAL)
 DATE_AND_TIME = Date_And_TimeLiteral(STRING_LITERAL)
 DURATION = DurationLiteral(STRING_LITERAL)
-DATE_EXPRESSION = Expression(TextualExpression(Literal(SimpleLiteral(DATE))))
-TIME_EXPRESSION = Expression(TextualExpression(Literal(SimpleLiteral(TIME))))
-DATE_AND_TIME_EXPRESSION = Expression(TextualExpression(Literal(SimpleLiteral(DATE_AND_TIME))))
-DURATION_EXPRESSION = Expression(TextualExpression(Literal(SimpleLiteral(DURATION))))
-NAME_EXPRESSION = Expression(TextualExpression("name"))
+DATE_EXPRESSION = txt_expr(Literal(SimpleLiteral(DATE)))
+TIME_EXPRESSION = txt_expr(Literal(SimpleLiteral(TIME)))
+DATE_AND_TIME_EXPRESSION = txt_expr(Literal(SimpleLiteral(DATE_AND_TIME)))
+DURATION_EXPRESSION = txt_expr(Literal(SimpleLiteral(DURATION)))
+NAME_EXPRESSION = txt_expr("name")
 EMPTY_CONTEXT_EXPRESSION = Expression(BoxedExpression(Context([])))
 NAME_KEY = Key('cat')
 STRING_KEY = Key('"cat"')
@@ -30,30 +34,38 @@ STR_CAT = ContextEntry(STRING_KEY, TIME_EXPRESSION)
 CAT_CONTEXT_EXPRESSION = Expression(BoxedExpression(Context([NAME_CAT, STR_CAT])))
 FUNCTION_A_EXPRESSION = function_definition(DATE_EXPRESSION)
 
-FUNCTION_B_EXPRESSION = Expression(TextualExpression(ExternalFunctionDefinition(['x', 'y', 'z'],
-                                                                                CAT_CONTEXT_EXPRESSION)))
+FUNCTION_B_EXPRESSION = txt_expr(ExternalFunctionDefinition(['x', 'y', 'z'],
+                                                            CAT_CONTEXT_EXPRESSION))
 EMPTY_LIST_EXPRESSION = Expression(BoxedExpression([]))
 
 LIST_EXPRESSION = Expression(BoxedExpression([FUNCTION_B_EXPRESSION,
                                               CAT_CONTEXT_EXPRESSION,
                                               DATE_EXPRESSION]))
-IZA_INSTANCE_EXPRESSION = Expression(TextualExpression(InstanceOf(LIST_EXPRESSION, ['Iza'])))
-ALA_INSTANCE = Expression(TextualExpression(InstanceOf(DATE_EXPRESSION, ['Ala', 'ma', 'kota'])))
+IZA_INSTANCE_EXPRESSION = txt_expr(InstanceOf(LIST_EXPRESSION, ['Iza']))
+ALA_INSTANCE = txt_expr(InstanceOf(DATE_EXPRESSION, ['Ala', 'ma', 'kota']))
 
 ALA_INSTANCE_EXPRESSION = function_definition(ALA_INSTANCE)
 
-FILTER_EXPRESSION = Expression(TextualExpression(FilterExpression(IZA_INSTANCE_EXPRESSION,
-                                                                  ALA_INSTANCE_EXPRESSION)))
+FILTER_EXPRESSION = txt_expr(FilterExpression(IZA_INSTANCE_EXPRESSION,
+                                              ALA_INSTANCE_EXPRESSION))
 
-BETWEEN_EXPRESSION = function_definition(Expression(TextualExpression(Comparison(Between(DATE_EXPRESSION,
-                                                                                         STRING_EXPRESSION,
-                                                                                         DATE_EXPRESSION)))))
+comparison = Comparison(Between(DATE_EXPRESSION, STRING_EXPRESSION, DATE_EXPRESSION))
+BETWEEN_EXPR = txt_expr(comparison)
+BETWEEN_EXPRESSION = function_definition(BETWEEN_EXPR)
 
-IN_A_EXPRESSION = function_definition(Expression(TextualExpression(Comparison(In(DATE_EXPRESSION, [Null()])))))
+IN_A_EXPRESSION = function_definition(txt_expr(Comparison(In(DATE_EXPRESSION, [Null()]))))
 
-IN_B_EXPRESSION = function_definition(Expression(TextualExpression(Comparison(In(DATE_EXPRESSION, [Null(), Null()])))))
+IN_B_EXPRESSION = function_definition(txt_expr(Comparison(In(DATE_EXPRESSION, [Null(), Null()]))))
 
-CONJUNCTION_EXPRESSION = Expression(TextualExpression(Conjunction(STRING_EXPRESSION, NAME_EXPRESSION)))
+CONJUNCTION_EXPRESSION = function_definition(txt_expr(Conjunction(BETWEEN_EXPR,
+                                                                  NAME_EXPRESSION)))
+
+DISJUNCTION_EXPRESSION = function_definition(txt_expr(Disjunction(BETWEEN_EXPR,
+                                                                  NAME_EXPRESSION)))
+
+SOME_EXPRESSION = txt_expr(SomeQuantifiedExpression([('name', STRING_EXPRESSION)], STRING_EXPRESSION))
+EVERY_EXPRESSION = txt_expr(
+    EveryQuantifiedExpression([('name', STRING_EXPRESSION), ('name', STRING_EXPRESSION)], STRING_EXPRESSION))
 
 
 def COMPARISON(operator):
@@ -71,6 +83,7 @@ LIST_STR = '[%s, %s, %s]' % (FUNCTION_B_STR, CAT_CONTEXT_STR, 'date("")')
 IZA_STR = '%s instance of Iza' % LIST_STR
 ALA_STR = '%s instance of Ala. ma.kota' % FUNCTION_A_STR
 FILTER_STR = '%s[%s]' % (IZA_STR, ALA_STR)
+BETWEEN_STR = '%s between %s and %s' % (FUNCTION_A_STR, STRING_LITERAL, 'date("")')
 
 
 def debug_lex(expr):
@@ -116,7 +129,7 @@ class TestStringMethods(unittest.TestCase):
         self.check_operator('>', Gt)
         self.check_operator('>=', Gte)
 
-        self.check_parser('%s between %s and %s' % (FUNCTION_A_STR, STRING_LITERAL, 'date("")'),
+        self.check_parser(BETWEEN_STR,
                           BETWEEN_EXPRESSION)
 
         self.check_parser('%s in null' % FUNCTION_A_STR, IN_A_EXPRESSION)
@@ -124,17 +137,27 @@ class TestStringMethods(unittest.TestCase):
         self.check_parser('%s in (null, null)' % FUNCTION_A_STR,
                           IN_B_EXPRESSION)
 
-    # def test_conjunction_is_expression(self):
-    #     self.check_parser('%s and %s' % (STRING_LITERAL, 'name'),
-    #                       CONJUNCTION_EXPRESSION)
+    def test_conjunction_is_expression(self):
+        self.check_parser('%s and %s' % (BETWEEN_STR, 'name'),
+                          CONJUNCTION_EXPRESSION)
+
+    def test_disjunction_is_expression(self):
+        self.check_parser('%s or %s' % (BETWEEN_STR, 'name'),
+                          DISJUNCTION_EXPRESSION)
+
+    def test_quantified_expression_is_expression(self):
+        self.check_parser('some %s in %s satisfies %s' % ('name', STRING_LITERAL, STRING_LITERAL),
+                          SOME_EXPRESSION)
+        self.check_parser(
+            'every %s in %s %s in %s satisfies %s' % ('name', STRING_LITERAL, 'name', STRING_LITERAL, STRING_LITERAL),
+            EVERY_EXPRESSION)
 
     def test_name_is_expression(self):
         self.check_parser('name', NAME_EXPRESSION)
 
     def check_parser(self, code, expression):
-        self.assertEqual(self.parser.parse(
-            code),
-            expression)
+        self.assertEqual(self.parser.parse(code),
+                         expression)
 
     def check_operator(self, operator, operator_ast):
         self.check_parser('%s %s %s' % (FUNCTION_A_STR, operator, STRING_LITERAL),
