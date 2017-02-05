@@ -103,6 +103,21 @@ class SimpleLiteral(AstNode):
     pass
 
 
+# 40
+class FunctionInvocation(AstBinaryNode):
+    pass
+
+
+# 41
+class PositionalParameters(AstNode):
+    pass
+
+
+# 42
+class NamedParameters(AstNode):
+    pass
+
+
 # 45
 class PathExpression(AstBinaryNode):
     pass

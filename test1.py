@@ -74,6 +74,14 @@ FOR_EXPRESSION = txt_expr(ForExpression(NAME_PAIRS, STRING_EXPRESSION))
 
 PATH_EXPRESSION = txt_expr(PathExpression(STRING_EXPRESSION, 'name'))
 
+EMPTY_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
+                                                    PositionalParameters([])))
+
+POSITIONAL_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
+                                                         PositionalParameters([STRING_EXPRESSION] * 3)))
+NAMED_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
+                                                    NamedParameters([('name', STRING_EXPRESSION)] * 3)))
+
 
 def COMPARISON(operator):
     return Expression(TextualExpression(Comparison(operator(DATE_EXPRESSION, STRING_EXPRESSION))))
@@ -122,6 +130,8 @@ class TestStringMethods(unittest.TestCase):
         self.check_parser(LIST_STR, LIST_EXPRESSION)
 
     def test_instance_of_is_expression(self):
+        self.check_parser('%s instance of %s' % (STRING_LITERAL, 'ala.ma.kota'),
+                          txt_expr(InstanceOf(STRING_EXPRESSION, ['ala', 'ma', 'kota'])))
         self.check_parser(IZA_STR, IZA_INSTANCE_EXPRESSION)
         self.check_parser(ALA_STR, ALA_INSTANCE_EXPRESSION)
 
@@ -168,9 +178,14 @@ class TestStringMethods(unittest.TestCase):
             'for %s in %s %s in %s return %s' % ('name', STRING_LITERAL, 'name', STRING_LITERAL, STRING_LITERAL),
             FOR_EXPRESSION)
 
-    # def test_path_is_expression(self):
-    #     self.check_parser('%s.%s' % (STRING_LITERAL, 'name'),
-    #                       PATH_EXPRESSION)
+    def test_path_is_expression(self):
+        self.check_parser('%s.%s' % (STRING_LITERAL, 'name'),
+                          PATH_EXPRESSION)
+
+    def test_function_invocation_is_expression(self):
+        self.check_parser('%s ()' % STRING_LITERAL, EMPTY_CALL_EXPRESSION)
+        self.check_parser('%s ("","","")' % STRING_LITERAL, POSITIONAL_CALL_EXPRESSION)
+        self.check_parser('%s (name:"",name:"",name:"")' % STRING_LITERAL, NAMED_CALL_EXPRESSION)
 
     def test_name_is_expression(self):
         self.check_parser('name', NAME_EXPRESSION)

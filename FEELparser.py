@@ -24,6 +24,7 @@ class FeelParser:
         ('left',  'IN'),
         #        | instance of |
         ('left',  'INSTANCE'),
+        ('right', '.'),
         #        | filter expressions |
         ('right', '['),
     )
@@ -48,7 +49,9 @@ class FeelParser:
                               | conjunction
                               | comparison
                               | instance_of
+                              | path_expression
                               | filter_expression
+                              | function_invocation
                               | literal
                               | NAME"""
         p[0] = TextualExpression(p[1])
@@ -74,17 +77,17 @@ class FeelParser:
 
     # 20
     def p_qualified_name(self, p):
-        """qualified_name : names
-                          | name"""
-        p[0] = p[1]
+        """qualified_name : NAME names"""
+        p[0] = [p[1]] + p[2]
 
     def p_names(self, p):
-        """names : qualified_name '.' name"""
-        p[0] = p[1] + p[3]
+        """names : dot_names
+                 | empty"""
+        p[0] = p[1]
 
-    def p_name(self, p):
-        """name : NAME"""
-        p[0] = [p[1]]
+    def p_dot_names(self, p):
+        """dot_names :  '.' qualified_name"""
+        p[0] = p[2]
 
     # 33
     def p_literal(self, p):
@@ -97,15 +100,63 @@ class FeelParser:
                           | date_time_literal"""
         p[0] = SimpleLiteral(p[1])
 
+    # 40
+    def p_function_invocation(self, p):
+        """function_invocation : expression parameters"""
+        p[0] = FunctionInvocation(p[1], p[2])
+
+    # 41
+    def p_parameters(self, p):
+        """parameters : '(' positional_parameters ')'
+                      | '(' named_parameters      ')'"""
+        p[0] = p[2]
+
+    # 42
+    def p_named_parameters(self, p):
+        """named_parameters : named_parameters1"""
+        p[0] = NamedParameters(p[1])
+
+    def p_named_parameters1(self, p):
+        """named_parameters1 : one_named_parameter
+                             | many_named_parameters"""
+        p[0] = p[1]
+
+    def p_one_named_parameter(self, p):
+        """one_named_parameter : parameter_name ':' expression"""
+        p[0] = [(p[1], p[3])]
+
+    def p_many_named_parameters(self, p):
+        """many_named_parameters : one_named_parameter ',' named_parameters1"""
+        p[0] = p[1] + p[3]
+
     # 43
     def p_parameter_name(self, p):
         """parameter_name : NAME"""
         p[0] = p[1]
 
+    # 44
+    def p_positional_parameters(self, p):
+        """positional_parameters : positional_parameters1
+                                 | empty"""
+        p[0] = PositionalParameters(p[1])
+
+    def p_positional_parameters1(self, p):
+        """positional_parameters1 : one_positional_parameter
+                                  | many_positional_parameters"""
+        p[0] = p[1]
+
+    def p_one_positional_parameter(self, p):
+        """one_positional_parameter : expression"""
+        p[0] = [p[1]]
+
+    def p_many_positional_parameters(self, p):
+        """many_positional_parameters : one_positional_parameter ',' positional_parameters1"""
+        p[0] = p[1] + p[3]
+
     # 45
-    # def p_path_expression(self, p):
-    #     """path_expression : expression '.' NAME"""
-    #     p[0] = PathExpression(p[1], p[3])
+    def p_path_expression(self, p):
+        """path_expression : expression '.' NAME"""
+        p[0] = PathExpression(p[1], p[3])
 
     # 46
     def p_for_expression(self, p):
