@@ -76,7 +76,7 @@ class FeelParser:
     # 15
     def p_positive_unary_test(self, p):
         """positive_unary_test : NULL"""
-        p[0] = Null()
+        p[0] = p[1]
 
     # 16
     def p_positive_unary_tests(self, p):
@@ -143,7 +143,8 @@ class FeelParser:
 
     # 33
     def p_literal(self, p):
-        """literal : simple_literal"""
+        """literal : simple_literal
+                   | NULL"""
         p[0] = Literal(p[1])
 
     # 34
@@ -313,13 +314,13 @@ class FeelParser:
 
     # 56
     def p_list(self, p):
-        """list : '[' list_expressions ']'"""
+        """list : '[' list_expressions ']'
+                | '['      empty       ']'"""
         p[0] = p[2]
 
     def p_list_expressions(self, p):
         """list_expressions : many_expressions
-                            | list_expression
-                            | empty"""
+                            | list_expression"""
         p[0] = p[1]
 
     def p_many_expressions(self, p):
@@ -332,7 +333,8 @@ class FeelParser:
 
     # 57
     def p_function_definition(self, p):
-        """function_definition : FUNCTION '(' formal_parameters ')' function_type expression"""
+        """function_definition : FUNCTION '(' formal_parameters ')' function_type expression
+                               | FUNCTION '('       empty       ')' function_type expression"""
         p[0] = p[5](p[3], p[6])
 
     def p_function_type(self, p):
@@ -350,8 +352,7 @@ class FeelParser:
 
     def p_formal_parameters(self, p):
         """formal_parameters : many_parameters
-                             | formal_parameter
-                             | empty"""
+                             | formal_parameter"""
         p[0] = p[1]
 
     def p_many_parameters(self, p):
@@ -365,13 +366,13 @@ class FeelParser:
 
     # 59
     def p_context(self, p):
-        """context : '{' context_entries '}'"""
+        """context : '{' context_entries '}'
+                   | '{'      empty      '}'"""
         p[0] = Context(p[2])
 
     def p_context_entries(self, p):
         """context_entries : many_entries
-                           | one_entry
-                           | zero_entries"""
+                           | one_entry"""
         p[0] = p[1]
 
     def p_many_entries(self, p):
@@ -381,10 +382,6 @@ class FeelParser:
     def p_one_entry(self, p):
         """one_entry : context_entry"""
         p[0] = [p[1]]
-
-    def p_zero_entries(self, p):
-        """zero_entries : empty"""
-        p[0] = []
 
     # 60
     def p_context_entry(self, p):

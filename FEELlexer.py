@@ -1,7 +1,7 @@
 # coding=utf-8
 from ply import lex
 
-from FEEL_AST import Eq, Neq, Lt, Lte, Gt, Gte, SomeQuantifiedExpression, EveryQuantifiedExpression
+from FEEL_AST import Eq, Neq, Lt, Lte, Gt, Gte, SomeQuantifiedExpression, EveryQuantifiedExpression, Null
 
 reserved = {
     'date': 'DATE',
@@ -15,7 +15,6 @@ reserved = {
     'of': 'OF',
     'between': 'BETWEEN',
     'in': 'IN',
-    'null': 'NULL',
     'satisfies': 'SATISFIES',
     'if': 'IF',
     'then': 'THEN',
@@ -38,6 +37,7 @@ tokens = [
              'SOME',
              'EVERY',
              'EXPONENT',
+             'NULL',
          ] + reserved.values()
 
 literals = "()[]{}:.,=+-*/"
@@ -119,6 +119,12 @@ def t_SOME(t):
 def t_EVERY(t):
     r'every'
     t.value = EveryQuantifiedExpression
+    return t
+
+
+def t_NULL(t):
+    r'null'
+    t.value = Null()
     return t
 
 

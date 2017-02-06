@@ -214,6 +214,9 @@ class TestStringMethods(unittest.TestCase):
         self.check_parser(STRING_LITERAL, STRING_EXPRESSION)
         self.check_parser('"ala"', simple_literal('ala'))
 
+    def test_null_is_expression(self):
+        self.check_parser('null', txt_expr(Literal(Null())))
+
     def test_name_is_expression(self):
         self.check_parser('name', NAME_EXPRESSION)
 
