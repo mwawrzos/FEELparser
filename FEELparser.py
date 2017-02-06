@@ -21,6 +21,12 @@ class FeelParser:
         #        | comparison b) |
         ('left',  'BETWEEN'),
         #        | comparison c) |
+        ('left',  '-', '+'),
+        #        | arithmetic a) |
+        ('left',  '/', '*'),
+        #        | arithmetic b) |
+        ('left',  'EXPONENT'),
+        #        | arithmetic c) |
         ('left',  'IN'),
         #        | instance of |
         ('left',  'INSTANCE'),
@@ -48,13 +54,24 @@ class FeelParser:
                               | disjunction
                               | conjunction
                               | comparison
+                              | arithmetic_expression
                               | instance_of
                               | path_expression
                               | filter_expression
                               | function_invocation
                               | literal
-                              | NAME"""
+                              | name"""
         p[0] = TextualExpression(p[1])
+
+    # 4
+    def p_arithmetic_expression(self, p):
+        """arithmetic_expression : addition
+                                 | subtraction
+                                 | multiplication
+                                 | division
+                                 | exponentiation
+                                 | arithmetic_negation"""
+        p[0] = ArithmeticExpression(p[1])
 
     # 15
     def p_positive_unary_test(self, p):
@@ -77,7 +94,7 @@ class FeelParser:
 
     # 20
     def p_qualified_name(self, p):
-        """qualified_name : NAME names"""
+        """qualified_name : name names"""
         p[0] = [p[1]] + p[2]
 
     def p_names(self, p):
@@ -89,6 +106,41 @@ class FeelParser:
         """dot_names :  '.' qualified_name"""
         p[0] = p[2]
 
+    # 21
+    def p_addition(self, p):
+        """addition : expression '+' expression"""
+        p[0] = Addition(p[1], p[3])
+
+    # 22
+    def p_subtraction(self, p):
+        """subtraction : expression '-' expression"""
+        p[0] = Subtraction(p[1], p[3])
+
+    # 23
+    def p_multiplication(self, p):
+        """multiplication : expression '*' expression"""
+        p[0] = Multiplication(p[1], p[3])
+
+    # 24
+    def p_division(self, p):
+        """division : expression '/' expression"""
+        p[0] = Division(p[1], p[3])
+
+    # 25
+    def p_exponentiation(self, p):
+        """exponentiation : expression EXPONENT expression"""
+        p[0] = Exponentiation(p[1], p[3])
+
+    # 26
+    def p_arithmetic_negation(self, p):
+        """arithmetic_negation : '-' expression"""
+        p[0] = ArithmeticNegation(p[2])
+
+    # 27
+    def p_name(self, p):
+        """name : NAME"""
+        p[0] = Name(p[1])
+
     # 33
     def p_literal(self, p):
         """literal : simple_literal"""
@@ -96,7 +148,9 @@ class FeelParser:
 
     # 34
     def p_simple_literal(self, p):
-        """simple_literal : STRING_LITERAL
+        """simple_literal : NUMERIC_LITERAL
+                          | STRING_LITERAL
+                          | BOOLEAN_LITERAL
                           | date_time_literal"""
         p[0] = SimpleLiteral(p[1])
 
@@ -131,7 +185,7 @@ class FeelParser:
 
     # 43
     def p_parameter_name(self, p):
-        """parameter_name : NAME"""
+        """parameter_name : name"""
         p[0] = p[1]
 
     # 44
@@ -155,7 +209,7 @@ class FeelParser:
 
     # 45
     def p_path_expression(self, p):
-        """path_expression : expression '.' NAME"""
+        """path_expression : expression '.' name"""
         p[0] = PathExpression(p[1], p[3])
 
     # 46
@@ -180,7 +234,7 @@ class FeelParser:
         p[0] = p[1]
 
     def p_one_in_pair(self, p):
-        """one_in_pair : NAME IN expression"""
+        """one_in_pair : name IN expression"""
         p[0] = [(p[1], p[3])]
 
     def p_many_in_pairs(self, p):
@@ -339,7 +393,7 @@ class FeelParser:
 
     # 61
     def p_key(self, p):
-        """key : NAME
+        """key : name
                | STRING_LITERAL"""
         p[0] = Key(p[1])
 

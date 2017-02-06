@@ -13,36 +13,44 @@ def txt_expr(expression):
     return Expression(TextualExpression(expression))
 
 
+def arithmetic_expression(expression):
+    return txt_expr(ArithmeticExpression(expression))
+
+
+def simple_literal(literal):
+    return txt_expr(Literal(SimpleLiteral(literal)))
+
+
 STRING_LITERAL = '""'
 
-STRING_EXPRESSION = txt_expr(Literal(SimpleLiteral(STRING_LITERAL)))
-DATE = DateLiteral(STRING_LITERAL)
-TIME = TimeLiteral(STRING_LITERAL)
-DATE_AND_TIME = Date_And_TimeLiteral(STRING_LITERAL)
-DURATION = DurationLiteral(STRING_LITERAL)
+STRING_EXPRESSION = txt_expr(Literal(SimpleLiteral('')))
+DATE = DateLiteral('')
+TIME = TimeLiteral('')
+DATE_AND_TIME = Date_And_TimeLiteral('')
+DURATION = DurationLiteral('')
 DATE_EXPRESSION = txt_expr(Literal(SimpleLiteral(DATE)))
 TIME_EXPRESSION = txt_expr(Literal(SimpleLiteral(TIME)))
 DATE_AND_TIME_EXPRESSION = txt_expr(Literal(SimpleLiteral(DATE_AND_TIME)))
 DURATION_EXPRESSION = txt_expr(Literal(SimpleLiteral(DURATION)))
-NAME_EXPRESSION = txt_expr("name")
+NAME_EXPRESSION = txt_expr(Name('name'))
 EMPTY_CONTEXT_EXPRESSION = Expression(BoxedExpression(Context([])))
-NAME_KEY = Key('cat')
-STRING_KEY = Key('"cat"')
+NAME_KEY = Key(Name('cat'))
+STRING_KEY = Key('cat')
 NAME_CAT = ContextEntry(NAME_KEY, DATE_EXPRESSION)
 STR_CAT = ContextEntry(STRING_KEY, TIME_EXPRESSION)
 
 CAT_CONTEXT_EXPRESSION = Expression(BoxedExpression(Context([NAME_CAT, STR_CAT])))
 FUNCTION_A_EXPRESSION = function_definition(DATE_EXPRESSION)
 
-FUNCTION_B_EXPRESSION = txt_expr(ExternalFunctionDefinition(['x', 'y', 'z'],
+FUNCTION_B_EXPRESSION = txt_expr(ExternalFunctionDefinition([Name('x'), Name('y'), Name('z')],
                                                             CAT_CONTEXT_EXPRESSION))
 EMPTY_LIST_EXPRESSION = Expression(BoxedExpression([]))
 
 LIST_EXPRESSION = Expression(BoxedExpression([FUNCTION_B_EXPRESSION,
                                               CAT_CONTEXT_EXPRESSION,
                                               DATE_EXPRESSION]))
-IZA_INSTANCE_EXPRESSION = txt_expr(InstanceOf(LIST_EXPRESSION, ['Iza']))
-ALA_INSTANCE = txt_expr(InstanceOf(DATE_EXPRESSION, ['Ala', 'ma', 'kota']))
+IZA_INSTANCE_EXPRESSION = txt_expr(InstanceOf(LIST_EXPRESSION, [Name('Iza')]))
+ALA_INSTANCE = txt_expr(InstanceOf(DATE_EXPRESSION, [Name('Ala'), Name('ma'), Name('kota')]))
 
 ALA_INSTANCE_EXPRESSION = function_definition(ALA_INSTANCE)
 
@@ -63,8 +71,8 @@ CONJUNCTION_EXPRESSION = function_definition(txt_expr(Conjunction(BETWEEN_EXPR,
 DISJUNCTION_EXPRESSION = function_definition(txt_expr(Disjunction(BETWEEN_EXPR,
                                                                   NAME_EXPRESSION)))
 
-SOME_EXPRESSION = txt_expr(SomeQuantifiedExpression([('name', STRING_EXPRESSION)], STRING_EXPRESSION))
-NAME_PAIRS = [('name', STRING_EXPRESSION), ('name', STRING_EXPRESSION)]
+SOME_EXPRESSION = txt_expr(SomeQuantifiedExpression([(Name('name'), STRING_EXPRESSION)], STRING_EXPRESSION))
+NAME_PAIRS = [(Name('name'), STRING_EXPRESSION), (Name('name'), STRING_EXPRESSION)]
 EVERY_EXPRESSION = txt_expr(
     EveryQuantifiedExpression(NAME_PAIRS, STRING_EXPRESSION))
 
@@ -72,7 +80,7 @@ IF_EXPRESSION = txt_expr(IfExpression(STRING_EXPRESSION, STRING_EXPRESSION, STRI
 
 FOR_EXPRESSION = txt_expr(ForExpression(NAME_PAIRS, STRING_EXPRESSION))
 
-PATH_EXPRESSION = txt_expr(PathExpression(STRING_EXPRESSION, 'name'))
+PATH_EXPRESSION = txt_expr(PathExpression(STRING_EXPRESSION, Name('name')))
 
 EMPTY_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
                                                     PositionalParameters([])))
@@ -80,7 +88,9 @@ EMPTY_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
 POSITIONAL_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
                                                          PositionalParameters([STRING_EXPRESSION] * 3)))
 NAMED_CALL_EXPRESSION = txt_expr(FunctionInvocation(STRING_EXPRESSION,
-                                                    NamedParameters([('name', STRING_EXPRESSION)] * 3)))
+                                                    NamedParameters([(Name('name'), STRING_EXPRESSION)] * 3)))
+
+TWO = simple_literal(2)
 
 
 def COMPARISON(operator):
@@ -131,7 +141,7 @@ class TestStringMethods(unittest.TestCase):
 
     def test_instance_of_is_expression(self):
         self.check_parser('%s instance of %s' % (STRING_LITERAL, 'ala.ma.kota'),
-                          txt_expr(InstanceOf(STRING_EXPRESSION, ['ala', 'ma', 'kota'])))
+                          txt_expr(InstanceOf(STRING_EXPRESSION, [Name('ala'), Name('ma'), Name('kota')])))
         self.check_parser(IZA_STR, IZA_INSTANCE_EXPRESSION)
         self.check_parser(ALA_STR, ALA_INSTANCE_EXPRESSION)
 
@@ -187,8 +197,46 @@ class TestStringMethods(unittest.TestCase):
         self.check_parser('%s ("","","")' % STRING_LITERAL, POSITIONAL_CALL_EXPRESSION)
         self.check_parser('%s (name:"",name:"",name:"")' % STRING_LITERAL, NAMED_CALL_EXPRESSION)
 
+    def test_numeric_literal_is_expression(self):
+        self.check_parser('0', simple_literal(0))
+        self.check_parser('-0', negation(simple_literal(0)))
+        self.check_parser('-1', negation(simple_literal(1)))
+        self.check_parser('1', simple_literal(1))
+        self.check_parser('-1.4', negation(simple_literal(1.4)))
+        self.check_parser('-.4', negation(simple_literal(.4)))
+        self.check_parser('.4', simple_literal(.4))
+
+    def test_boolean_literal_is_expression(self):
+        self.check_parser('true', simple_literal(True))
+        self.check_parser('false', simple_literal(False))
+
+    def test_string_literal_is_expression(self):
+        self.check_parser(STRING_LITERAL, STRING_EXPRESSION)
+        self.check_parser('"ala"', simple_literal('ala'))
+
     def test_name_is_expression(self):
         self.check_parser('name', NAME_EXPRESSION)
+
+    def test_arithmetic_negation_is_expression(self):
+        self.check_parser('-name', negation(NAME_EXPRESSION))
+
+    def test_exponentiation_is_expression(self):
+        self.check_parser('2**2', arithmetic_expression(Exponentiation(TWO, TWO)))
+
+    def test_division_is_expression(self):
+        self.check_parser('2/2', arithmetic_expression(Division(TWO, TWO)))
+
+    def test_multiplication_is_expression(self):
+        self.check_parser('2*2', arithmetic_expression(Multiplication(TWO, TWO)))
+
+    def test_subtraction_is_expression(self):
+        self.check_parser('2-2', arithmetic_expression(Subtraction(TWO, TWO)))
+
+    def test_addition_is_expression(self):
+        self.check_parser('2+2', arithmetic_expression(Addition(TWO, TWO)))
+
+    def test_addition_is_expression(self):
+        self.check_parser('2+2', arithmetic_expression(Addition(TWO, TWO)))
 
     def check_parser(self, code, expression):
         self.assertEqual(self.parser.parse(code),
@@ -197,6 +245,10 @@ class TestStringMethods(unittest.TestCase):
     def check_operator(self, operator, operator_ast):
         self.check_parser('%s %s %s' % (FUNCTION_A_STR, operator, STRING_LITERAL),
                           LOGICAL_CMP_EXPRESSION(operator_ast))
+
+
+def negation(expression):
+    return arithmetic_expression(ArithmeticNegation(expression))
 
 
 if __name__ == '__main__':

@@ -88,8 +88,48 @@ class TextualExpression(AstNode):
     pass
 
 
+# 4
+class ArithmeticExpression(AstNode):
+    pass
+
+
 # 15
 class Null(NullAstNode):
+    pass
+
+
+# 21
+class Addition(AstBinaryNode):
+    pass
+
+
+# 22
+class Subtraction(AstBinaryNode):
+    pass
+
+
+# 23
+class Multiplication(AstBinaryNode):
+    pass
+
+
+# 24
+class Division(AstBinaryNode):
+    pass
+
+
+# 25
+class Exponentiation(AstBinaryNode):
+    pass
+
+
+# 26
+class ArithmeticNegation(AstNode):
+    pass
+
+
+# 27
+class Name(AstNode):
     pass
 
 

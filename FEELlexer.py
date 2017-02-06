@@ -27,6 +27,8 @@ reserved = {
 tokens = [
              'NAME',
              'STRING_LITERAL',
+             'NUMERIC_LITERAL',
+             'BOOLEAN_LITERAL',
              'EQ',
              'NEQ',
              'LT',
@@ -35,11 +37,15 @@ tokens = [
              'GTE',
              'SOME',
              'EVERY',
+             'EXPONENT',
          ] + reserved.values()
 
-literals = "()[]{}:.,="
+literals = "()[]{}:.,=+-*/"
 
 t_ignore = r' '
+
+t_EXPONENT = r'\*\*'
+
 ADDITIONAL_NAME_SYMBOLS = ur'[\./\-’\+\*]'
 NAME_START_CHAR = ur'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]'
 NAME_PART_CHAR = r'(' + NAME_START_CHAR + ur'| \d | [\u00B7\u0300-\u036F\u203F-\u2040])'
@@ -47,8 +53,25 @@ NAME_PART = NAME_PART_CHAR + r'+'
 NAME_START = NAME_START_CHAR + NAME_PART_CHAR + r'+'
 t_NAME = NAME_START + r'(' + NAME_PART + ADDITIONAL_NAME_SYMBOLS + r')*'
 PARAMETER_NAME = t_NAME
-t_STRING_LITERAL = r'"[^"]*"'
 FORMAL_PARAMETER = PARAMETER_NAME
+
+
+def t_NUMERIC_LITERAL(t):
+    r'(\d+(\.\d+)?|\.\d+)'
+    t.value = float(t.value)
+    return t
+
+
+def t_BOOLEAN_LITERAL(t):
+    r'(true|false)'
+    t.value = t.value == 'true'
+    return t
+
+
+def t_STRING_LITERAL(t):
+    r'"[^"]*"'
+    t.value = t.value[1:-1]
+    return t
 
 
 def t_EQ(t):
