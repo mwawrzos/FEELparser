@@ -78,6 +78,30 @@ class AstTernaryNode(AstBinaryNode):
         return super(AstTernaryNode, self).__eq__(other) and self.expr == other.expr
 
 
+class AstQuadrupleNode(AstTernaryNode):
+    def __init__(self, fst=None, snd=None, trd=None, frt=None):
+        super(AstQuadrupleNode, self).__init__(fst, snd, trd)
+        self.frt = frt
+
+    def __repr__(self):
+        return self.pp(0)
+
+    def pp(self, indent):
+        epp = pretty_printer(self.expr)
+        kpp = pretty_printer(self.key)
+        vpp = pretty_printer(self.value)
+        fpp = pretty_printer(self.frt)
+        return '%s%s\n%s\n%s\n%s\n%s' % (indent * '\t',
+                                         self.__class__,
+                                         epp(indent + 1),
+                                         kpp(indent + 1),
+                                         vpp(indent + 1),
+                                         fpp(indent + 1))
+
+    def __eq__(self, other):
+        return super(AstQuadrupleNode, self).__eq__(other) and self.frt == other.frt
+
+
 # 1
 class Expression(AstNode):
     pass
@@ -90,6 +114,36 @@ class TextualExpression(AstNode):
 
 # 4
 class ArithmeticExpression(AstNode):
+    pass
+
+
+# 7
+class SimplePositiveUnaryTest(AstNode):
+    pass
+
+
+# 8
+class Interval(AstQuadrupleNode):
+    pass
+
+
+# 9
+class OpenIntervalStart(NullAstNode):
+    pass
+
+
+# 10
+class ClosedIntervalStart(NullAstNode):
+    pass
+
+
+# 11
+class OpenIntervalEnd(NullAstNode):
+    pass
+
+
+# 12
+class ClosedIntervalEnd(NullAstNode):
     pass
 
 

@@ -13,26 +13,28 @@ class FeelParser:
         #        |   functions   |   for   |   if  | quantified |
         ('right', ')', 'EXTERNAL', 'RETURN', 'ELSE', 'SATISFIES'),
         #        | disjunction |
-        ('left',  'OR'),
+        ('left', 'OR'),
         #        | conjunction |
-        ('left',  'AND'),
+        ('left', 'AND'),
         #        | comparison a) |
-        ('left',  'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'),
+        ('left', 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'),
         #        | comparison b) |
-        ('left',  'BETWEEN'),
+        ('left', 'BETWEEN'),
         #        | comparison c) |
-        ('left',  '-', '+'),
+        ('left', '-', '+'),
         #        | arithmetic a) |
-        ('left',  '/', '*'),
+        ('left', '/', '*'),
         #        | arithmetic b) |
-        ('left',  'EXPONENT'),
+        ('left', 'EXPONENT'),
         #        | arithmetic c) |
-        ('left',  'IN'),
+        ('left', 'IN'),
         #        | instance of |
-        ('left',  'INSTANCE'),
-        ('right', '.'),
+        ('left', 'INSTANCE'),
         #        | filter expressions |
         ('right', '['),
+        ('left', ']'),
+        ('right', '.'),
+        ('right', '(')
     )
 
     def __init__(self, **kwargs):
@@ -60,8 +62,14 @@ class FeelParser:
                               | filter_expression
                               | function_invocation
                               | literal
-                              | name"""
+                              | simple_positive_unary_test
+                              | name
+                              | par_expression"""
         p[0] = TextualExpression(p[1])
+
+    def p_par_expression(self, p):
+        """par_expression : '(' textual_expression ')'"""
+        p[0] = p[2]
 
     # 4
     def p_arithmetic_expression(self, p):
@@ -72,6 +80,69 @@ class FeelParser:
                                  | exponentiation
                                  | arithmetic_negation"""
         p[0] = ArithmeticExpression(p[1])
+
+    # 7
+    def p_simple_positive_unary_test(self, p):
+        """simple_positive_unary_test : interval
+                                      | unary_comparison"""
+        p[0] = SimplePositiveUnaryTest(p[1])
+
+    def p_unary_comparison(self, p):
+        """unary_comparison : LT  endpoint
+                            | LTE endpoint
+                            | GT  endpoint
+                            | GTE endpoint"""
+        p[0] = p[1](None, p[2])
+
+    # 8
+    def p_interval(self, p):
+        """interval : interval1 DOTS interval2"""
+        p[0] = p[3](p[1])
+
+    def p_interval1(self, p):
+        """interval1 : open_interval_start
+                     | closed_interval_start"""
+        p[0] = p[1]
+
+    def p_interval2(self, p):
+        """interval2 : open_interval_end
+                     | closed_interval_end"""
+        p[0] = p[1]
+
+    # def p_interval_start(self, p):
+    #     """interval_start : open_interval_start
+    #                       | closed_interval_start"""
+    #     p[0] = p[1]
+
+    # def p_interval_end(self, p):
+    #     """interval_end : open_interval_end
+    #                     | closed_interval_end"""
+    #     p[0] = p[1]
+
+    # 9
+    def p_open_interval_start(self, p):
+        """open_interval_start : '(' endpoint
+                               | ']' endpoint"""
+        e1 = p[2]
+        p[0] = lambda e2, end: Interval(OpenIntervalStart(), e1, e2, end)
+
+    def p_closed_interval_start(self, p):
+        """closed_interval_start : '[' endpoint"""
+        e1 = p[2]
+        p[0] = lambda e2, end: Interval(ClosedIntervalStart(), e1, e2, end)
+
+    # 11
+    def p_open_interval_end(self, p):
+        """open_interval_end : endpoint ')'
+                             | endpoint '['"""
+        e2 = p[1]
+        p[0] = lambda foo: foo(e2, OpenIntervalEnd())
+
+    # 12
+    def p_closed_interval_end(self, p):
+        """closed_interval_end : endpoint ']'"""
+        e2 = p[1]
+        p[0] = lambda foo: foo(e2, ClosedIntervalEnd())
 
     # 15
     def p_positive_unary_test(self, p):
@@ -92,20 +163,31 @@ class FeelParser:
         """many_positive_unary_tests : one_positive_unary_test ',' positive_unary_tests"""
         p[0] = p[1] + p[3]
 
-    # 20
-    def p_qualified_name(self, p):
-        """qualified_name : name names"""
-        p[0] = [p[1]] + p[2]
-
-    def p_names(self, p):
-        """names : dot_names
-                 | empty"""
+    # 18
+    def p_endpoint(self, p):
+        """endpoint : simple_value"""
         p[0] = p[1]
 
-    def p_dot_names(self, p):
-        """dot_names :  '.' qualified_name"""
-        p[0] = p[2]
+    # 19
+    def p_simple_value(self, p):
+        """simple_value : qualified_name
+                        | simple_literal"""
+        p[0] = p[1]
 
+    # 20
+    def p_qualified_name(self, p):
+        """qualified_name : names"""
+        p[0] = p[1]  # + [p[2]]
+
+    def p_names(self, p):
+        """names : name '.'   qualified_name
+                 | name empty empty"""
+        p[0] = [p[1]] + p[3]
+
+    # def p_dot_names(self, p):
+    #     """dot_names : qualified_name '.'"""
+    #     p[0] = p[1]
+    #
     # 21
     def p_addition(self, p):
         """addition : expression '+' expression"""
@@ -314,9 +396,17 @@ class FeelParser:
 
     # 56
     def p_list(self, p):
-        """list : '[' list_expressions ']'
-                | '['      empty       ']'"""
+        """list : list1
+                | list2"""
+        p[0] = p[1]
+
+    def p_list1(self, p):
+        """list1 : '[' list_expressions ']'"""
         p[0] = p[2]
+
+    def p_list2(self, p):
+        """list2 : '[' ']'"""
+        p[0] = []
 
     def p_list_expressions(self, p):
         """list_expressions : many_expressions

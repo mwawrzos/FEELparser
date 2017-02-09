@@ -50,7 +50,8 @@ LIST_EXPRESSION = Expression(BoxedExpression([FUNCTION_B_EXPRESSION,
                                               CAT_CONTEXT_EXPRESSION,
                                               DATE_EXPRESSION]))
 IZA_INSTANCE_EXPRESSION = txt_expr(InstanceOf(LIST_EXPRESSION, [Name('Iza')]))
-ALA_INSTANCE = txt_expr(InstanceOf(DATE_EXPRESSION, [Name('Ala'), Name('ma'), Name('kota')]))
+QUALIFIED_ALA = [Name('Ala'), Name('ma'), Name('kota')]
+ALA_INSTANCE = txt_expr(InstanceOf(DATE_EXPRESSION, QUALIFIED_ALA))
 
 ALA_INSTANCE_EXPRESSION = function_definition(ALA_INSTANCE)
 
@@ -120,6 +121,10 @@ def debug_lex(expr):
 class TestStringMethods(unittest.TestCase):
     def setUp(self):
         self.parser = FeelParser()
+
+    def check_parser(self, code, expression):
+        self.assertEqual(self.parser.parse(code),
+                         expression)
 
     def test_date_time_literal_is_expression(self):
         self.check_parser('date("")', DATE_EXPRESSION)
@@ -238,12 +243,38 @@ class TestStringMethods(unittest.TestCase):
     def test_addition_is_expression(self):
         self.check_parser('2+2', arithmetic_expression(Addition(TWO, TWO)))
 
-    def test_addition_is_expression(self):
-        self.check_parser('2+2', arithmetic_expression(Addition(TWO, TWO)))
+    def test_interval_is_expression(self):
+        o_start = OpenIntervalStart()
+        o_end = OpenIntervalEnd()
+        c_start = ClosedIntervalStart()
+        c_end = ClosedIntervalEnd()
+        endpoint = SimpleLiteral(2)
+        self.check_parser('(2..2]', txt_expr(SimplePositiveUnaryTest(Interval(o_start,
+                                                                              endpoint,
+                                                                              endpoint,
+                                                                              c_end))))
+        self.check_parser(']Ala.ma.kota..iza)', txt_expr(SimplePositiveUnaryTest(Interval(o_start,
+                                                                                          QUALIFIED_ALA,
+                                                                                          [Name('iza')],
+                                                                                          o_end))))
+        self.check_parser('[Ala.ma.kota..iza)', txt_expr(SimplePositiveUnaryTest(Interval(c_start,
+                                                                                          QUALIFIED_ALA,
+                                                                                          [Name('iza')],
+                                                                                          o_end))))
 
-    def check_parser(self, code, expression):
-        self.assertEqual(self.parser.parse(code),
-                         expression)
+    def test_simple_positive_unary_test_is_expression(self):
+        endpoint = SimpleLiteral(2)
+        self.check_parser('< 2', txt_expr(SimplePositiveUnaryTest(Lt(None, endpoint))))
+        self.check_parser('<=2', txt_expr(SimplePositiveUnaryTest(Lte(None, endpoint))))
+        self.check_parser('> 2', txt_expr(SimplePositiveUnaryTest(Gt(None, endpoint))))
+        self.check_parser('>=2', txt_expr(SimplePositiveUnaryTest(Gte(None, endpoint))))
+
+    def test_parenthesis_is_expression(self):
+        two = simple_literal(2)
+        some_sum = txt_expr(TextualExpression(ArithmeticExpression(Addition(two, two))))
+        some_multiplication = txt_expr(ArithmeticExpression(Multiplication(some_sum, two)))
+        self.check_parser('(2+2)*2', some_multiplication)
+        self.check_parser('function()(2+2)*2', function_definition(some_multiplication))
 
     def check_operator(self, operator, operator_ast):
         self.check_parser('%s %s %s' % (FUNCTION_A_STR, operator, STRING_LITERAL),
