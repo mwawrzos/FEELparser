@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 from ply import lex
 
 from FEEL_AST import Eq, Neq, Lt, Lte, Gt, Gte, SomeQuantifiedExpression, EveryQuantifiedExpression, Null
