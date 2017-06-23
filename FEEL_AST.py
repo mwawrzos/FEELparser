@@ -318,7 +318,7 @@ class ExternalFunctionDefinition(AstBinaryNode):
 # 59
 class Context(AstNode):
     def __eq__(self, other):
-        return cmp(self.value, other.value) == 0
+        return self.value == other.value
 
 
 # 60

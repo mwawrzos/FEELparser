@@ -501,7 +501,7 @@ class FeelParser:
         p[0] = []
 
     def p_error(self, p):
-        print 'Ill tok: %s' % p
+        print('Ill tok: %s' % p)
 
     def parse(self, *args, **kwargs):
         return self.parser.parse(lexer=lexer, *args, **kwargs)

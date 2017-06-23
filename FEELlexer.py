@@ -39,7 +39,7 @@ tokens = [
              'EXPONENT',
              'NULL',
              'DOTS',
-         ] + reserved.values()
+         ] + list(reserved.values())
 
 literals = "()[]{}:.,=+-*/"
 
@@ -48,9 +48,9 @@ t_ignore = r' '
 t_EXPONENT = r'\*\*'
 t_DOTS = r'\.\.'
 
-ADDITIONAL_NAME_SYMBOLS = ur'[\./\-’\+\*]'
-NAME_START_CHAR = ur'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]'
-NAME_PART_CHAR = r'(' + NAME_START_CHAR + ur'| \d | [\u00B7\u0300-\u036F\u203F-\u2040])'
+ADDITIONAL_NAME_SYMBOLS = r'[\./\-’\+\*]'
+NAME_START_CHAR = r'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]'
+NAME_PART_CHAR = r'(' + NAME_START_CHAR + r'| \d | [\u00B7\u0300-\u036F\u203F-\u2040])'
 NAME_PART = NAME_PART_CHAR + r'+'
 NAME_START = NAME_START_CHAR + NAME_PART_CHAR + r'+'
 t_NAME = NAME_START + r'(' + NAME_PART + ADDITIONAL_NAME_SYMBOLS + r')*'
@@ -138,7 +138,7 @@ def t_NAME2(t):
 
 
 def t_error(t):
-    print "Ill char: '%s'" % t.value[0]
+    print("Ill char: '%s'" % t.value[0])
     t.lexer.skip(1)
 
 

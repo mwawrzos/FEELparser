@@ -115,7 +115,7 @@ BETWEEN_STR = '%s between %s and %s' % (FUNCTION_A_STR, STRING_LITERAL, 'date(""
 def debug_lex(expr):
     lexer.input(expr)
     for t in lexer:
-        print t
+        print(t)
 
 
 class TestStringMethods(unittest.TestCase):
