@@ -146,7 +146,8 @@ class FeelParser:
 
     # 15
     def p_positive_unary_test(self, p):
-        """positive_unary_test : NULL"""
+        """positive_unary_test : NULL
+                               | simple_positive_unary_test"""
         p[0] = p[1]
 
     # 16
