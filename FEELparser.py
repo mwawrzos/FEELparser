@@ -1,4 +1,5 @@
 from ply import yacc
+
 from FEEL_AST import *
 from FEELlexer import tokens, lexer
 
@@ -10,31 +11,19 @@ def create_literal(literal, *args):
 
 class FeelParser:
     precedence = (
-        #        |   functions   |   for   |   if  | quantified |
-        ('right', ')', 'EXTERNAL', 'RETURN', 'ELSE', 'SATISFIES'),
-        #        | disjunction |
-        ('left', 'OR'),
-        #        | conjunction |
-        ('left', 'AND'),
-        #        | comparison a) |
-        ('left', 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE'),
-        #        | comparison b) |
-        ('left', 'BETWEEN'),
-        #        | comparison c) |
-        ('left', '-', '+'),
-        #        | arithmetic a) |
-        ('left', '/', '*'),
-        #        | arithmetic b) |
+        ('right', 'FUNCTION_P', 'FOR_P', 'IF_P', 'QUANTIFIED_P'),
+        ('left', 'DISJUNCTION_P'),
+        ('left', 'CONJUNCTION_P'),
+        ('left', 'EQ', 'NEQ', 'LT', 'LTE', 'GT', 'GTE', 'OTHER_CMP_P'),
+        ('left', '+', '-'),
+        ('left', '*', '/'),
         ('left', 'EXPONENT'),
-        #        | arithmetic c) |
-        ('left', 'IN'),
-        #        | instance of |
-        ('left', 'INSTANCE'),
-        #        | filter expressions |
-        ('right', '['),
-        ('left', ']'),
-        ('right', '.'),
-        ('right', '(')
+        ('right', 'UNARY_MINUS'),
+        ('left', 'INSTANCE_OF_P', 'QNA'),
+        ('left', 'PATH_P'),
+        ('left', 'FILTER_P', 'FUNCTION_INVOCATION_P'),
+        ('left', 'LITERAL_P', 'SIMPLE_POSITIVE_UNARY_TEST_P', 'NAME', 'PAR_P'),
+        ('left', 'BOXED_P'),
     )
 
     def __init__(self, **kwargs):
@@ -68,7 +57,7 @@ class FeelParser:
         p[0] = TextualExpression(p[1])
 
     def p_par_expression(self, p):
-        """par_expression : '(' textual_expression ')'"""
+        """par_expression : '(' textual_expression ')' %prec PAR_P"""
         p[0] = p[2]
 
     # 4
@@ -83,30 +72,30 @@ class FeelParser:
 
     # 7
     def p_simple_positive_unary_test(self, p):
-        """simple_positive_unary_test : interval
-                                      | unary_comparison"""
+        """simple_positive_unary_test : unary_comparison
+                                      | interval"""
         p[0] = SimplePositiveUnaryTest(p[1])
 
     def p_unary_comparison(self, p):
-        """unary_comparison : LT  endpoint
-                            | LTE endpoint
-                            | GT  endpoint
-                            | GTE endpoint"""
+        """unary_comparison : LT  endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P
+                            | LTE endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P
+                            | GT  endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P
+                            | GTE endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         p[0] = p[1](None, p[2])
 
     # 8
     def p_interval(self, p):
-        """interval : interval1 DOTS interval2"""
+        """interval : interval1 DOTS interval2 %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         p[0] = p[3](p[1])
 
     def p_interval1(self, p):
-        """interval1 : open_interval_start
-                     | closed_interval_start"""
+        """interval1 : open_interval_start   %prec SIMPLE_POSITIVE_UNARY_TEST_P
+                     | closed_interval_start %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         p[0] = p[1]
 
     def p_interval2(self, p):
-        """interval2 : open_interval_end
-                     | closed_interval_end"""
+        """interval2 : open_interval_end   %prec SIMPLE_POSITIVE_UNARY_TEST_P
+                     | closed_interval_end %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         p[0] = p[1]
 
     # def p_interval_start(self, p):
@@ -121,13 +110,13 @@ class FeelParser:
 
     # 9
     def p_open_interval_start(self, p):
-        """open_interval_start : '(' endpoint
-                               | ']' endpoint"""
+        """open_interval_start : '(' endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P
+                               | ']' endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         e1 = p[2]
         p[0] = lambda e2, end: Interval(OpenIntervalStart(), e1, e2, end)
 
     def p_closed_interval_start(self, p):
-        """closed_interval_start : '[' endpoint"""
+        """closed_interval_start : '[' endpoint %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         e1 = p[2]
         p[0] = lambda e2, end: Interval(ClosedIntervalStart(), e1, e2, end)
 
@@ -166,7 +155,7 @@ class FeelParser:
 
     # 18
     def p_endpoint(self, p):
-        """endpoint : simple_value"""
+        """endpoint : simple_value %prec SIMPLE_POSITIVE_UNARY_TEST_P"""
         p[0] = p[1]
 
     # 19
@@ -177,18 +166,18 @@ class FeelParser:
 
     # 20
     def p_qualified_name(self, p):
-        """qualified_name : names"""
+        """qualified_name : names %prec QNA"""
         p[0] = p[1]  # + [p[2]]
 
     def p_names(self, p):
-        """names : name '.'   qualified_name
-                 | name empty empty"""
+        """names : name '.'   qualified_name %prec QNA
+                 | name empty empty  %prec QNA"""
         p[0] = [p[1]] + p[3]
 
     # def p_dot_names(self, p):
     #     """dot_names : qualified_name '.'"""
     #     p[0] = p[1]
-    #
+    
     # 21
     def p_addition(self, p):
         """addition : expression '+' expression"""
@@ -216,7 +205,7 @@ class FeelParser:
 
     # 26
     def p_arithmetic_negation(self, p):
-        """arithmetic_negation : '-' expression"""
+        """arithmetic_negation : '-' expression %prec UNARY_MINUS"""
         p[0] = ArithmeticNegation(p[2])
 
     # 27
@@ -226,8 +215,8 @@ class FeelParser:
 
     # 33
     def p_literal(self, p):
-        """literal : simple_literal
-                   | NULL"""
+        """literal : simple_literal %prec LITERAL_P
+                   | NULL           %prec LITERAL_P"""
         p[0] = Literal(p[1])
 
     # 34
@@ -240,7 +229,7 @@ class FeelParser:
 
     # 40
     def p_function_invocation(self, p):
-        """function_invocation : expression parameters"""
+        """function_invocation : expression parameters %prec FUNCTION_INVOCATION_P"""
         p[0] = FunctionInvocation(p[1], p[2])
 
     # 41
@@ -293,23 +282,23 @@ class FeelParser:
 
     # 45
     def p_path_expression(self, p):
-        """path_expression : expression '.' name"""
+        """path_expression : expression '.' name %prec PATH_P"""
         p[0] = PathExpression(p[1], p[3])
 
     # 46
     def p_for_expression(self, p):
-        """for_expression : FOR in_pairs RETURN expression"""
+        """for_expression : FOR in_pairs RETURN expression %prec FOR_P"""
         p[0] = ForExpression(p[2], p[4])
 
     # 47
     def p_if_expression(self, p):
-        """if_expression : IF expression THEN expression ELSE expression"""
+        """if_expression : IF expression THEN expression ELSE expression %prec IF_P"""
         p[0] = IfExpression(p[2], p[4], p[6])
 
     # 48
     def p_quantified_expression(self, p):
-        """quantified_expression : SOME  in_pairs SATISFIES expression
-                                 | EVERY in_pairs SATISFIES expression"""
+        """quantified_expression : SOME  in_pairs SATISFIES expression %prec QUANTIFIED_P
+                                 | EVERY in_pairs SATISFIES expression %prec QUANTIFIED_P"""
         p[0] = p[1](p[2], p[4])
 
     def p_in_pairs(self, p):
@@ -327,12 +316,12 @@ class FeelParser:
 
     # 49
     def p_disjunction(self, p):
-        """disjunction : expression OR expression"""
+        """disjunction : expression OR expression %prec DISJUNCTION_P"""
         p[0] = Disjunction(p[1], p[3])
 
     # 50
     def p_conjunction(self, p):
-        """conjunction : expression AND expression"""
+        """conjunction : expression AND expression %prec CONJUNCTION_P"""
         p[0] = Conjunction(p[1], p[3])
 
     # 51
@@ -355,7 +344,7 @@ class FeelParser:
 
     # b
     def p_between(self, p):
-        """between : between1 AND expression"""
+        """between : between1 AND expression %prec OTHER_CMP_P"""
         p[0] = p[1](p[3])
 
     def p_between1(self, p):
@@ -366,66 +355,66 @@ class FeelParser:
 
     # c
     def p_in1(self, p):
-        """in1 : expression IN positive_unary_test"""
+        """in1 : expression IN positive_unary_test %prec OTHER_CMP_P"""
         p[0] = In(p[1], [p[3]])
 
     # d
     def p_in2(self, p):
-        """in2 : expression IN '(' positive_unary_tests ')'"""
+        """in2 : expression IN '(' positive_unary_tests ')' %prec OTHER_CMP_P"""
         p[0] = In(p[1], p[4])
 
     # 52
     def p_filter_expression(self, p):
-        """filter_expression : expression '[' expression ']'"""
+        """filter_expression : expression '[' expression ']' %prec FILTER_P"""
         p[0] = FilterExpression(p[1], p[3])
 
     # 53
     def p_instance_of(self, p):
-        """instance_of : expression INSTANCE OF type"""
+        """instance_of : expression INSTANCE OF type %prec INSTANCE_OF_P"""
         p[0] = InstanceOf(p[1], p[4])
 
     # 54
     def p_type(self, p):
-        """type : qualified_name"""
+        """type : qualified_name %prec INSTANCE_OF_P"""
         p[0] = p[1]
 
     # 55
     def p_boxed_expression(self, p):
-        """boxed_expression : list
-                            | context"""
+        """boxed_expression : list    %prec BOXED_P
+                            | context %prec BOXED_P"""
         p[0] = BoxedExpression(p[1])
 
     # 56
     def p_list(self, p):
-        """list : list1
-                | list2"""
+        """list : list1 %prec BOXED_P
+                | list2 %prec BOXED_P"""
         p[0] = p[1]
 
     def p_list1(self, p):
-        """list1 : '[' list_expressions ']'"""
+        """list1 : '[' list_expressions ']' %prec BOXED_P"""
         p[0] = p[2]
 
     def p_list2(self, p):
-        """list2 : '[' ']'"""
+        """list2 : '[' ']' %prec BOXED_P"""
         p[0] = []
 
     def p_list_expressions(self, p):
-        """list_expressions : many_expressions
-                            | list_expression"""
+        """list_expressions : many_expressions %prec BOXED_P
+                            | list_expression  %prec BOXED_P"""
         p[0] = p[1]
 
     def p_many_expressions(self, p):
-        """many_expressions : list_expressions ',' list_expression"""
+        """many_expressions : list_expressions ',' list_expression %prec BOXED_P"""
         p[0] = p[1] + p[3]
 
     def p_list_expression(self, p):
-        """list_expression : expression"""
+        """list_expression : expression %prec BOXED_P"""
         p[0] = [p[1]]
 
     # 57
     def p_function_definition(self, p):
-        """function_definition : FUNCTION '(' formal_parameters ')' function_type expression
-                               | FUNCTION '('       empty       ')' function_type expression"""
+        """function_definition : FUNCTION '(' formal_parameters ')' function_type expression %prec FUNCTION_P
+                               | FUNCTION '('       empty       ')' function_type expression %prec FUNCTION_P"""
         p[0] = p[5](p[3], p[6])
 
     def p_function_type(self, p):

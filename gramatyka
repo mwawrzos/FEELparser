@@ -95,3 +95,10 @@ expression ;
 60. context entry = key , ":" , expression ;
 61. key = name | string literal ;
 62. date time literal = ( "date" | "time" | "date and time" | "duration" ) , "(" , string literal , ")" ;
+
+0
+21 # 20 # 17 # 8 # 2 # 1
+50 # 34
+81 # 21.. # 63
+98 # 89
+21.. # 105
