@@ -8,8 +8,7 @@ precedence = [
     ('right', 'function_definition_p', 'quantified_p', 'if_p', 'for_p'),
     ('left', 'OR'),
     ('left', 'AND'),
-    ('left', '=', 'NEQ', '<', 'LTE', '>', 'GTE'),
-    ('left', 'BETWEEN'),
+    ('left', '=', 'NEQ', '<', 'LTE', '>', 'GTE', 'comparison_p'),
     ('left', '+', '-'),
     ('left', '*', '/'),
     ('left', 'EXPONENT'),
@@ -65,14 +64,115 @@ def p_arithmetic_expression(p):
 
 # 5
 def p_simple_expression(p):
-    """simple_expression : simple_value"""
+    """simple_expression : arithmetic_expression
+                         | simple_value"""
     p[0] = p[1]
 
 
-# 15
+# 6
+def p_simple_expressions(p):
+    """simple_expressions : many_simple_expressions"""
+    p[0] = AST.SimpleExpressions(p[1])
+
+
+def p_many_simple_expressions(p):
+    """many_simple_expressions : simple_expression more_simple_expressions"""
+    p[0] = [p[1]] + p[2]
+
+
+def p_more_simple_expressions(p):
+    """more_simple_expressions : empty_list empty_list
+                               | ',' many_simple_expressions"""
+    p[0] = p[2]
+
+
+# 7
+def p_simple_positive_unary_test(p):
+    """simple_positive_unary_test : endpoint
+                                  | op_endpoint
+                                  | interval"""
+    p[0] = p[1]
+
+
+def p_op_endpoint(p):
+    """op_endpoint : '<' endpoint
+                   | GTE endpoint
+                   | '>' endpoint
+                   | LTE endpoint"""
+    p[0] = {
+        '<': AST.LtEp(p[2]),
+        '<=': AST.LteEp(p[2]),
+        '>': AST.GtEp(p[2]),
+        '>=': AST.GteEp(p[2])
+    }[p[1]]
+
+
+# 8
+def p_interval(p):
+    """interval : interval_starts endpoint DOTS endpoint interval_ends"""
+    p[0] = AST.Interval(p[1], p[2], p[4], p[5])
+
+
+# 9-10
+def p_interval_starts(p):
+    """interval_starts : '(' %prec comparison_p
+                       | ']' %prec comparison_p
+                       | '[' %prec comparison_p"""
+    p[0] = {
+        '(': AST.OpenIntervalStart,
+        ']': AST.OpenIntervalStart,
+        '[': AST.ClosedIntervalStart
+    }[p[1]]()
+
+
+# 11-12
+def p_interval_ends(p):
+    """interval_ends : ')'
+                     | '['
+                     | ']'"""
+    p[0] = {
+        ')': AST.OpenIntervalEnd,
+        '[': AST.OpenIntervalEnd,
+        ']': AST.ClosedIntervalEnd
+    }[p[1]]()
+
+
+# 13
+def p_simple_positive_unary_tests(p):
+    """simple_positive_unary_tests : many_simple_positive_unary_tests"""
+    p[0] = AST.PositiveUnaryTests(p[1])
+
+
+def p_many_simple_positive_unary_tests(p):
+    """many_simple_positive_unary_tests : simple_positive_unary_test more_simple_positive_unary_tests"""
+    p[0] = [p[1]] + p[2]
+
+
+def p_more_simple_positive_unary_tests(p):
+    """more_simple_positive_unary_tests : ',' many_simple_positive_unary_tests
+                                        | empty_list empty_list"""
+    p[0] = p[2]
+
+
+14
+def p_simple_unary_tests(p):
+    """simple_unary_tests : simple_positive_unary_tests
+                          | not_simple_positive_unary_tests
+                          | no_tests"""
+    p[0] = p[1]
+
+
+# 14b
+def p_not_simple_positive_unary_tests(p):
+    """not_simple_positive_unary_tests : NOT '(' simple_positive_unary_tests ')'"""
+    p[0] = AST.Not(p[3])
+
+
+15
 def p_positive_unary_test(p):
-    """positive_unary_test : NULL"""
-    p[0] = AST.Null()
+    """positive_unary_test : null
+                           | simple_positive_unary_test"""
+    p[0] = p[1]
 
 
 # 16
@@ -110,6 +210,12 @@ def p_not_positive_tests(p):
 def p_no_tests(p):
     """no_tests : '-'"""
     p[0] = AST.NoTest()
+
+
+# 18
+def p_endpoint(p):
+    """endpoint : simple_value"""
+    p[0] = AST.Endpoint(p[1])
 
 
 # 19
@@ -336,26 +442,26 @@ def p_operator(p):
 
 # 51b
 def p_between(p):
-    """between : between1 AND expression"""
+    """between : between1 AND expression  %prec comparison_p"""
     expr, begin_start = p[1]
     begin_end = p[3]
     p[0] = AST.Between(expr, begin_start, begin_end)
 
 
 def p_between1(p):
-    """between1 : expression BETWEEN expression"""
+    """between1 : expression BETWEEN expression %prec comparison_p"""
     p[0] = p[1], p[3]
 
 
 # 51c
 def p_in1(p):
-    """in1 : expression IN positive_unary_test"""
+    """in1 : expression IN positive_unary_test %prec comparison_p"""
     p[0] = AST.In(p[1], AST.PositiveUnaryTests([p[3]]))
 
 
 # 51d
 def p_in2(p):
-    """in2 : expression IN '(' positive_unary_tests ')'"""
+    """in2 : expression IN '(' positive_unary_tests ')' %prec comparison_p"""
     p[0] = AST.In(p[1], p[4])
 
 
@@ -493,5 +599,6 @@ def p_error(p):
 
 
 parser = yacc.yacc()
-simpleParser = yacc.yacc(start='simple_expression')
+simpleParser = yacc.yacc(start='simple_expressions')
 tableParser = yacc.yacc(start='unary_tests')
+simpleUnaryTestsParser = yacc.yacc(start='simple_unary_tests')

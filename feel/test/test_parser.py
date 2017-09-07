@@ -2,7 +2,7 @@ import unittest
 from typing import Optional
 
 from feel.parser import AST
-from feel.parser.Parser import parser, tableParser, simpleParser
+from feel.parser.Parser import parser, tableParser, simpleParser, simpleUnaryTestsParser
 
 
 def operator_ast_gen(operator_ast):
@@ -62,8 +62,18 @@ NEGATION_AST = AST.Negation(AST.Name('?A_zÊÝĄͼൺ⁶Ⰲ〠邏２𐎅'))
 ARITHMETIC_EXPRESSION_STR = '1.2-%s  /true  **%s' % (NEGATION_STR, NAME_STR)
 ARITHMETIC_EXPRESSION_AST = AST.Dif(AST.Number(1.2), AST.Div(NEGATION_AST, AST.Exp(AST.Boolean(True), NAME_AST)))
 
+NOT_STR = 'not (null)'
+NOT_AST = AST.Not(AST.PositiveUnaryTests([AST.Null()]))
+
 POSITIVE_UNARY_TESTS_STR = '%s  in (null, null)' % ARITHMETIC_EXPRESSION_STR
 POSITIVE_UNARY_TESTS_AST = AST.In(ARITHMETIC_EXPRESSION_AST, AST.PositiveUnaryTests([AST.Null()] * 2))
+
+POSITIVE_UNARY_TEST_STR = '%s in (null, %s)' % (POSITIVE_UNARY_TESTS_STR, DATE_STR)
+POSITIVE_UNARY_TEST_AST = AST.In(POSITIVE_UNARY_TESTS_AST, AST.PositiveUnaryTests([AST.Null(), AST.Endpoint(DATE_AST)]))
+
+SIMPLE_POSITIVE_UNARY_TESTS_STR = 'ala, "ala"'
+SIMPLE_POSITIVE_UNARY_TESTS_AST = AST.PositiveUnaryTests([AST.Endpoint([AST.Name('ala')]),
+                                                          AST.Endpoint(AST.StringLiteral('ala'))])
 
 
 class TestParser(unittest.TestCase):
@@ -75,6 +85,9 @@ class TestParser(unittest.TestCase):
 
     def check_table_parser(self, str_input: str, ast: Optional[AST.AST], debug=False) -> None:
         self.assertEqual(ast, tableParser.parse(str_input, debug=debug))
+
+    def _check_simple_unary_tests_parser(self, str_input: str, ast: Optional[AST.AST], debug=False) -> None:
+        self.assertEqual(ast, simpleUnaryTestsParser.parse(str_input, debug=debug))
 
     def test_date_time_literal(self):
         self.check_parser(DATE_STR, DATE_AST)
@@ -173,8 +186,8 @@ class TestParser(unittest.TestCase):
         #                   AST.QuantifiedExpr(True, [(AST.Name('ala'), DISJUNCTION_AST)], CONJUNCTION_AST))
 
     def test_if_expression(self):
-        self.check_parser('if  %s then  %s else  %s' % ((DATE_STR,)*3),
-                          AST.If(*(DATE_AST,)*3))
+        self.check_parser('if  %s then  %s else  %s' % ((DATE_STR,) * 3),
+                          AST.If(*(DATE_AST,) * 3))
         self.check_parser(IF_STR,
                           IF_AST)
         # self.check_parser('if %s then %s else %s' % (QUANTIFIED_STR, DISJUNCTION_STR, CONJUNCTION_STR),
@@ -201,7 +214,7 @@ class TestParser(unittest.TestCase):
     def test_named_parameters(self):
         self.check_parser('%s(ala: %s)' % (PATH_STR, INVOCATION_STR),
                           AST.Invocation(PATH_AST, [(AST.Name('ala'), INVOCATION_AST)]))
-        self.check_parser('%s(ala : %s, ola :%s)' % ((DATE_STR,)*3),
+        self.check_parser('%s(ala : %s, ola :%s)' % ((DATE_STR,) * 3),
                           AST.Invocation(DATE_AST,
                                          [(AST.Name('ala'), DATE_AST), (AST.Name('ola'), DATE_AST)]))
 
@@ -280,11 +293,12 @@ class TestParser(unittest.TestCase):
 
     def test_simple_value(self):
         # self.check_simple_parser('ala.ma.kota', AST.QualifiedName(['ala', 'ma', 'kota']))
-        self.check_simple_parser(DATE_STR, DATE_AST)
+        # self.check_simple_parser('ala.ma.kota', AST.QualifiedName(['ala', 'ma', 'kota']))
+        self.check_simple_parser(DATE_STR, AST.SimpleExpressions([DATE_AST]))
 
     def test_unary_tests(self):
         self.check_table_parser('null', AST.PositiveUnaryTests([AST.Null()]))
-        self.check_table_parser('not (null)', AST.Not(AST.PositiveUnaryTests([AST.Null()])))
+        self.check_table_parser(NOT_STR, NOT_AST)
         self.check_table_parser('-', AST.NoTest())
 
     def test_positive_unary_tests(self):
@@ -295,6 +309,65 @@ class TestParser(unittest.TestCase):
         self.check_parser(POSITIVE_UNARY_TESTS_STR,
                           POSITIVE_UNARY_TESTS_AST)
 
-    # def test_positive_unary_test(self):
-    #     self.check_parser('%s in (null, %s)' % (POSITIVE_UNARY_TESTS_STR, DATE_STR),
-    #                       AST.In(POSITIVE_UNARY_TESTS_AST, AST.PositiveUnaryTests([AST.Null(), DATE_AST])))
+    def test_positive_unary_test(self):
+        self.check_parser(POSITIVE_UNARY_TEST_STR, POSITIVE_UNARY_TEST_AST)
+
+    def test_simple_unary_tests(self):
+        self._check_simple_unary_tests_parser(SIMPLE_POSITIVE_UNARY_TESTS_STR, SIMPLE_POSITIVE_UNARY_TESTS_AST)
+        self._check_simple_unary_tests_parser('not (%s)' % SIMPLE_POSITIVE_UNARY_TESTS_STR,
+                                              AST.Not(SIMPLE_POSITIVE_UNARY_TESTS_AST))
+        self._check_simple_unary_tests_parser('-', AST.NoTest())
+
+    def test_closed_interval_end(self):
+        self.check_parser('1in]2..3]',
+                          AST.In(AST.Number(1),
+                                 AST.PositiveUnaryTests([AST.Interval(AST.OpenIntervalStart(),
+                                                                      AST.Endpoint(AST.Number(2)),
+                                                                      AST.Endpoint(AST.Number(3)),
+                                                                      AST.ClosedIntervalEnd())])))
+
+    def test_open_interval_end(self):
+        self.check_parser('1 in ]2..3)',
+                          AST.In(AST.Number(1),
+                                 AST.PositiveUnaryTests([AST.Interval(AST.OpenIntervalStart(),
+                                                                      AST.Endpoint(AST.Number(2)),
+                                                                      AST.Endpoint(AST.Number(3)),
+                                                                      AST.OpenIntervalEnd())])))
+        self.check_parser('1 in ]2..3[',
+                          AST.In(AST.Number(1),
+                                 AST.PositiveUnaryTests([AST.Interval(AST.OpenIntervalStart(),
+                                                                      AST.Endpoint(AST.Number(2)),
+                                                                      AST.Endpoint(AST.Number(3)),
+                                                                      AST.OpenIntervalEnd())])))
+
+    def test_closed_interval_start(self):
+        self.check_parser('1 in [2..3]',
+                          AST.In(AST.Number(1),
+                                 AST.PositiveUnaryTests([AST.Interval(AST.ClosedIntervalStart(),
+                                                                      AST.Endpoint(AST.Number(2)),
+                                                                      AST.Endpoint(AST.Number(3)),
+                                                                      AST.ClosedIntervalEnd())])))
+
+    def test_open_interval_start(self):
+        self.check_parser('1 in (2..3]',
+                          AST.In(AST.Number(1),
+                                 AST.PositiveUnaryTests([AST.Interval(AST.OpenIntervalStart(),
+                                                                      AST.Endpoint(AST.Number(2)),
+                                                                      AST.Endpoint(AST.Number(3)),
+                                                                      AST.ClosedIntervalEnd())])))
+        self.check_parser('1 in ]2..3]',
+                          AST.In(AST.Number(1),
+                                 AST.PositiveUnaryTests([AST.Interval(AST.OpenIntervalStart(),
+                                                                      AST.Endpoint(AST.Number(2)),
+                                                                      AST.Endpoint(AST.Number(3)),
+                                                                      AST.ClosedIntervalEnd())])))
+
+    def test_simple_positive_unary_test(self):
+        self.check_parser('1 in <2',
+                          AST.In(AST.Number(1), AST.PositiveUnaryTests([AST.LtEp(AST.Endpoint(AST.Number(2)))])))
+        self.check_parser('1 in <=2',
+                          AST.In(AST.Number(1), AST.PositiveUnaryTests([AST.LteEp(AST.Endpoint(AST.Number(2)))])))
+        self.check_parser('1 in >2',
+                          AST.In(AST.Number(1), AST.PositiveUnaryTests([AST.GtEp(AST.Endpoint(AST.Number(2)))])))
+        self.check_parser('1 in >=2',
+                          AST.In(AST.Number(1), AST.PositiveUnaryTests([AST.GteEp(AST.Endpoint(AST.Number(2)))])))

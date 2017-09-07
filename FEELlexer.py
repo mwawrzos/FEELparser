@@ -27,7 +27,7 @@ reserved = {
     'return': 'RETURN',
     'true': 'TRUE',
     'false': 'FALSE',
-    'not': 'NOT'
+    'not': 'NOT',
 }
 
 tokens = [
@@ -40,7 +40,7 @@ tokens = [
              'NEWLINE',
              'EXPONENT',
              #              'NULL',
-             #              'DOTS',
+             'DOTS',
          ] + list(reserved.values())
 
 literals = "()[]{}:.,=+-*/<>"
@@ -54,7 +54,7 @@ def t_NEWLINE(t):
 
 
 t_EXPONENT = r'\*\*'
-# t_DOTS = r'\.\.'
+t_DOTS = r'\.\.'
 #
 ADDITIONAL_NAME_SYMBOLS = r'[\./\-’\+\*]'
 NAME_START_CHAR = r'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070' \
@@ -130,10 +130,11 @@ def t_error(t):
 def print_context(t):
     first_in_line = find_first_in_lane(t)
     last_in_line = find_last_in_lane(t)
+    token_len = len(t.value) + 2 if t.type == 'STRING_LITERAL' else len(t.value)
     print(t.lexer.lexdata[first_in_line:last_in_line + 1])
     print('%s%s%s' % ('~' * (t.lexpos - first_in_line),
-                      '^' * len(t.value),
-                      '~' * (last_in_line - t.lexpos - len(t.value) + 1)))
+                      '^' * token_len,
+                      '~' * (last_in_line - t.lexpos - token_len + 1)))
 
 
 lexer = lex.lex()

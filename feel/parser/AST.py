@@ -316,3 +316,75 @@ class Not(AST):
 class NoTest(AST):
     def __init__(self):
         super(NoTest, self).__init__(None)
+
+
+class IntervalBorders(AST):
+    def __init__(self, representation: str):
+        super(IntervalBorders, self).__init__(None)
+        self.representation = representation
+
+    def __str__(self):
+        return self.representation
+
+    __repr__ = __str__
+
+
+class OpenIntervalStart(IntervalBorders):
+    def __init__(self):
+        super(OpenIntervalStart, self).__init__('(')
+
+
+class ClosedIntervalStart(IntervalBorders):
+    def __init__(self):
+        super(ClosedIntervalStart, self).__init__('[')
+
+
+class ClosedIntervalEnd(IntervalBorders):
+    def __init__(self):
+        super(ClosedIntervalEnd, self).__init__(']')
+
+
+class OpenIntervalEnd(IntervalBorders):
+    def __init__(self):
+        super(OpenIntervalEnd, self).__init__(')')
+
+
+class Endpoint(AST):
+    pass
+
+
+class Interval(AST):
+    def __init__(self, start: IntervalBorders, start_value: Endpoint, end_value: Endpoint, end: IntervalBorders):
+        super(Interval, self).__init__(start_value)
+        self.start = start
+        self.endValue = end_value
+        self.end = end
+
+    def __eq__(self, o) -> bool:
+        rest = self.start == o.start and self.endValue == o.endValue and self.end == o.end
+        return super(Interval, self).__eq__(o) and rest
+
+    def __str__(self):
+        return '%s%s..%s%s' % (self.start, self.value, self.endValue, self.end)
+
+    __repr__ = __str__
+
+
+class LtEp(AST):
+    pass
+
+
+class LteEp(AST):
+    pass
+
+
+class GtEp(AST):
+    pass
+
+
+class GteEp(AST):
+    pass
+
+
+class SimpleExpressions(AST):
+    pass
