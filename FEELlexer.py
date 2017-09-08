@@ -55,7 +55,7 @@ def t_NEWLINE(t):
 
 t_EXPONENT = r'\*\*'
 t_DOTS = r'\.\.'
-#
+
 ADDITIONAL_NAME_SYMBOLS = r'[\./\-’\+\*]'
 NAME_START_CHAR = r'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070' \
                   r'-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\U00010000-\U000EFFFF]'
