@@ -40,7 +40,7 @@ def token_repr(p):
 # noinspection PyPep8Naming
 class UnexpectedError:
     def __call__(self, o):
-        getattr(self, 'unexpected_%s' % o.type, 'unexpected')(o)
+        getattr(self, 'unexpected_%s' % type(o).__name__, self.unexpected)(o)
 
     @staticmethod
     def unexpected(o):
@@ -65,3 +65,6 @@ def unexpected_symbol(p):
 
 def unexpected(_):
     print('something unexpected')
+
+
+unexpected_error = UnexpectedError()
