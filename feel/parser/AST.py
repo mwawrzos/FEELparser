@@ -40,7 +40,7 @@ class Param(AST):
 
 
 class FunctionDefinition(AST):
-    def __init__(self, params: [Param], external, body):
+    def __init__(self, params, external, body):
         super(FunctionDefinition, self).__init__(body)
         self.params = params
         self.external = external
