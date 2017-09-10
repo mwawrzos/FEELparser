@@ -2,7 +2,7 @@ class AST:
     def __init__(self, token):
         self.value = token
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return self.__class__ == o.__class__ and self.value == o.value
 
     def __str__(self):
@@ -52,7 +52,7 @@ class FunctionDefinition(AST):
 
     __repr__ = __str__
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(AST, self).__eq__(o) and self.external == o.external and self.params == o.params
 
 
@@ -74,7 +74,7 @@ class InstanceOf(AST):
 
     __repr__ = __str__
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(InstanceOf, self).__eq__(o) and self.type == o.type
 
 
@@ -87,7 +87,7 @@ class FilterExpression(AST):
         super(FilterExpression, self).__init__(token)
         self.filter = filter_value
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(FilterExpression, self).__eq__(o) and self.filter == o.filter
 
     def __str__(self):
@@ -102,7 +102,7 @@ class BinOp(AST):
         self.op = op
         self.rhs = rhs
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(BinOp, self).__eq__(o) and self.op == o.op and self.rhs == o.rhs
 
     def __str__(self):
@@ -147,7 +147,7 @@ class Between(AST):
         self.b_start = b_start
         self.b_end = b_end
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(Between, self).__eq__(o) and self.b_start == o.b_start and self.b_end == o.b_end
 
     def __str__(self):
@@ -168,7 +168,7 @@ class In(AST):
         super(In, self).__init__(token)
         self.tests = tests
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(In, self).__eq__(o) and self.tests == o.tests
 
     def __str__(self):
@@ -193,7 +193,7 @@ class QuantifiedExpr(AST):
         self.generators = generators
         self.test = test
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(QuantifiedExpr, self).__eq__(o) and self.generators == o.generators and self.test == o.test
 
     def __str__(self):
@@ -210,7 +210,7 @@ class If(AST):
         self.then = then
         self.else_ = else_
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(If, self).__eq__(o) and self.then == o.then and self.else_ == o.else_
 
     def __str__(self):
@@ -224,7 +224,7 @@ class For(AST):
         super(For, self).__init__(generators)
         self.result = result
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(For, self).__eq__(o) and self.result == o.result
 
     def __str__(self):
@@ -239,7 +239,7 @@ class Path(AST):
         super(Path, self).__init__(expr)
         self.name = name
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(Path, self).__eq__(o) and self.name == o.name
 
     def __str__(self):
@@ -253,7 +253,7 @@ class Invocation(AST):
         super(Invocation, self).__init__(foo)
         self.parameters = parameters
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         return super(Invocation, self).__eq__(o) and self.parameters == o.parameters
 
     def __str__(self):
@@ -354,7 +354,7 @@ class Interval(AST):
         self.endValue = end_value
         self.end = end
 
-    def __eq__(self, o) -> bool:
+    def __eq__(self, o):
         rest = self.start == o.start and self.endValue == o.endValue and self.end == o.end
         return super(Interval, self).__eq__(o) and rest
 
