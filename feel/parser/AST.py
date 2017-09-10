@@ -40,7 +40,7 @@ class Param(AST):
 
 
 class FunctionDefinition(AST):
-    def __init__(self, params: [Param], external: bool, body: AST):
+    def __init__(self, params: [Param], external, body):
         super(FunctionDefinition, self).__init__(body)
         self.params = params
         self.external = external
@@ -65,7 +65,7 @@ class Type(AST):
 
 
 class InstanceOf(AST):
-    def __init__(self, expression: AST, instance_type: Type):
+    def __init__(self, expression, instance_type):
         super(InstanceOf, self).__init__(expression)
         self.type = instance_type
 
@@ -83,7 +83,7 @@ class QualifiedName(AST):
 
 
 class FilterExpression(AST):
-    def __init__(self, token: AST, filter_value: AST):
+    def __init__(self, token, filter_value):
         super(FilterExpression, self).__init__(token)
         self.filter = filter_value
 
@@ -97,7 +97,7 @@ class FilterExpression(AST):
 
 
 class BinOp(AST):
-    def __init__(self, lhs: AST, op: str, rhs: AST):
+    def __init__(self, lhs, op, rhs):
         super(BinOp, self).__init__(lhs)
         self.op = op
         self.rhs = rhs
@@ -112,37 +112,37 @@ class BinOp(AST):
 
 
 class Eq(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Eq, self).__init__(lhs, '=', rhs)
 
 
 class Neq(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Neq, self).__init__(lhs, '!=', rhs)
 
 
 class Lt(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Lt, self).__init__(lhs, '<', rhs)
 
 
 class Lte(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Lte, self).__init__(lhs, '<=', rhs)
 
 
 class Gt(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Gt, self).__init__(lhs, '<=', rhs)
 
 
 class Gte(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Gte, self).__init__(lhs, '<=', rhs)
 
 
 class Between(AST):
-    def __init__(self, token: AST, b_start: AST, b_end: AST):
+    def __init__(self, token, b_start, b_end):
         super(Between, self).__init__(token)
         self.b_start = b_start
         self.b_end = b_end
@@ -164,7 +164,7 @@ class PositiveUnaryTests(AST):
 
 
 class In(AST):
-    def __init__(self, token: AST, tests: PositiveUnaryTests):
+    def __init__(self, token, tests):
         super(In, self).__init__(token)
         self.tests = tests
 
@@ -178,7 +178,7 @@ class In(AST):
 
 
 class Conjunction(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Conjunction, self).__init__(lhs, 'and', rhs)
 
 
@@ -188,7 +188,7 @@ class Disjunction(BinOp):
 
 
 class QuantifiedExpr(AST):
-    def __init__(self, some: bool, generators, test: AST):
+    def __init__(self, some, generators, test):
         super(QuantifiedExpr, self).__init__(some)
         self.generators = generators
         self.test = test
@@ -205,7 +205,7 @@ class QuantifiedExpr(AST):
 
 
 class If(AST):
-    def __init__(self, condition: AST, then: AST, else_: AST):
+    def __init__(self, condition, then, else_):
         super(If, self).__init__(condition)
         self.then = then
         self.else_ = else_
@@ -220,7 +220,7 @@ class If(AST):
 
 
 class For(AST):
-    def __init__(self, generators, result: AST):
+    def __init__(self, generators, result):
         super(For, self).__init__(generators)
         self.result = result
 
@@ -235,7 +235,7 @@ class For(AST):
 
 
 class Path(AST):
-    def __init__(self, expr: AST, name: Name):
+    def __init__(self, expr, name):
         super(Path, self).__init__(expr)
         self.name = name
 
@@ -249,7 +249,7 @@ class Path(AST):
 
 
 class Invocation(AST):
-    def __init__(self, foo: AST, parameters):
+    def __init__(self, foo, parameters):
         super(Invocation, self).__init__(foo)
         self.parameters = parameters
 
@@ -279,27 +279,27 @@ class Negation(AST):
 
 
 class Exp(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Exp, self).__init__(lhs, '**', rhs)
 
 
 class Div(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Div, self).__init__(lhs, '/', rhs)
 
 
 class Mul(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Mul, self).__init__(lhs, '*', rhs)
 
 
 class Dif(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Dif, self).__init__(lhs, '-', rhs)
 
 
 class Sum(BinOp):
-    def __init__(self, lhs: AST, rhs: AST):
+    def __init__(self, lhs, rhs):
         super(Sum, self).__init__(lhs, '+', rhs)
 
 
@@ -313,7 +313,7 @@ class NoTest(AST):
 
 
 class IntervalBorders(AST):
-    def __init__(self, representation: str):
+    def __init__(self, representation):
         super(IntervalBorders, self).__init__(None)
         self.representation = representation
 
@@ -348,7 +348,7 @@ class Endpoint(AST):
 
 
 class Interval(AST):
-    def __init__(self, start: IntervalBorders, start_value: Endpoint, end_value: Endpoint, end: IntervalBorders):
+    def __init__(self, start, start_value, end_value, end):
         super(Interval, self).__init__(start_value)
         self.start = start
         self.endValue = end_value
