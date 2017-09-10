@@ -1,5 +1,3 @@
-from functools import singledispatch
-
 from ply.lex import LexToken
 from ply.yacc import YaccSymbol
 
@@ -39,6 +37,24 @@ def token_repr(p):
     return '%s{%s}' % (p.type, p.value)
 
 
+# noinspection PyPep8Naming
+class UnexpectedError:
+    def __call__(self, o):
+        getattr(self, 'unexpected_%s' % o.type, 'unexpected')(o)
+
+    @staticmethod
+    def unexpected(o):
+        unexpected(o)
+
+    @staticmethod
+    def unexpected_LexToken(o):
+        unexpected_token(o)
+
+    @staticmethod
+    def unexpected_YaccSymbol(o):
+        unexpected_symbol(o)
+
+
 def unexpected_token(t):
     contextual_error(t, 'unexpected token %s' % token_repr(t))
 
@@ -49,8 +65,3 @@ def unexpected_symbol(p):
 
 def unexpected(_):
     print('something unexpected')
-
-
-unexpected_error = singledispatch(unexpected)
-unexpected_error.register(LexToken, unexpected_token)
-unexpected_error.register(YaccSymbol, unexpected_symbol)
