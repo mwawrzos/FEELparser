@@ -1,5 +1,8 @@
+# encoding: utf8
 import re
 from ply import lex
+
+from feel.ErrorPrinters import print_context, find_first_in_lane
 
 ADDITIONAL_NAME_SYMBOLS = r'[\./\-’\+\*]'
 NAME_START_CHAR = r'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070' \
