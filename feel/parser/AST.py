@@ -1,6 +1,3 @@
-import typing
-
-
 class AST:
     def __init__(self, token):
         self.value = token
@@ -32,9 +29,6 @@ class Duration(AST):
 
 class Name(AST):
     pass
-
-
-GeneratorsT = typing.List[typing.Tuple[Name, AST]]
 
 
 class Context(AST):
@@ -194,7 +188,7 @@ class Disjunction(BinOp):
 
 
 class QuantifiedExpr(AST):
-    def __init__(self, some: bool, generators: GeneratorsT, test: AST):
+    def __init__(self, some: bool, generators, test: AST):
         super(QuantifiedExpr, self).__init__(some)
         self.generators = generators
         self.test = test
@@ -226,7 +220,7 @@ class If(AST):
 
 
 class For(AST):
-    def __init__(self, generators: GeneratorsT, result: AST):
+    def __init__(self, generators, result: AST):
         super(For, self).__init__(generators)
         self.result = result
 

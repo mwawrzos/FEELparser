@@ -1,5 +1,4 @@
 import unittest
-from typing import Optional
 
 from feel.parser import AST
 from feel.parser.parser.Parser import parser
@@ -79,16 +78,16 @@ SIMPLE_POSITIVE_UNARY_TESTS_AST = AST.PositiveUnaryTests([AST.Endpoint([AST.Name
 
 
 class TestParser(unittest.TestCase):
-    def check_parser(self, str_input: str, ast: Optional[AST.AST], debug=False) -> None:
+    def check_parser(self, str_input: str, ast, debug=False) -> None:
         self.assertEqual(ast, parser.parse(str_input, debug=debug))
 
-    def check_simple_parser(self, str_input: str, ast: Optional[AST.AST], debug=False) -> None:
+    def check_simple_parser(self, str_input: str, ast, debug=False) -> None:
         self.assertEqual(ast, simple_parser.parse(str_input, debug=debug))
 
-    def check_table_parser(self, str_input: str, ast: Optional[AST.AST], debug=False) -> None:
+    def check_table_parser(self, str_input: str, ast, debug=False) -> None:
         self.assertEqual(ast, table_parser.parse(str_input, debug=debug))
 
-    def _check_simple_unary_tests_parser(self, str_input: str, ast: Optional[AST.AST], debug=False) -> None:
+    def _check_simple_unary_tests_parser(self, str_input: str, ast, debug=False) -> None:
         pass
         # self.assertEqual(ast, simpleUnaryTestsParser.parse(str_input, debug=debug))
 
