@@ -203,12 +203,16 @@ class Parser(BaseParser):
         p[0] = p[1]
 
     def p_missing_then_error(self, p):
-        """missing_then_error : IF expression error"""
+        """missing_then_error : IF expression error ELSE expression"""
         missing_token_error("missing 'then' branch in 'if' expression", p[3])
+        self.parser.errok()
+        p[0] = AST.If(p[2], AST.Null(), p)
 
     def p_missing_else_error(self, p):
         """missing_else_error : IF expression THEN expression error"""
         missing_token_error("missing 'else' branch in 'if' expression", p[5])
+        self.parser.errok()
+        p[0] = AST.If(p[2], p[4], AST.Null())
 
     # 48
     def p_quantified_expression(self, p):
@@ -347,6 +351,7 @@ class Parser(BaseParser):
     def p_missing_comma_error(self, p):
         """missing_comma_error : context_entry ',' error"""
         missing_token_error('comma is missing in a context', p[3])
+        self.parser.errok()
         p[0] = []
 
     # 60

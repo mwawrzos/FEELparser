@@ -1,6 +1,6 @@
 from ply import yacc
 
-from feel.ErrorPrinters import unexpected_token
+from feel.ErrorPrinters import unexpected_error
 from feel.lexer.BaseLexer import BaseLexer as Lexer
 from feel.parser import AST
 
@@ -143,7 +143,7 @@ class BaseParser:
 
     def p_error(self, p):
         if p:
-            unexpected_token(p)
+            unexpected_error(p)
         else:
             print('unexpected end of file')
 
