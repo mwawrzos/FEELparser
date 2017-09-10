@@ -203,10 +203,10 @@ class Parser(BaseParser):
         p[0] = p[1]
 
     def p_missing_then_error(self, p):
-        """missing_then_error : IF expression error ELSE expression"""
+        """missing_then_error : IF expression error ELSE"""
         missing_token_error("missing 'then' branch in 'if' expression", p[3])
         self.parser.errok()
-        p[0] = AST.If(p[2], AST.Null(), p)
+        p[0] = AST.If(p[2], AST.Null(), AST.Null())
 
     def p_missing_else_error(self, p):
         """missing_else_error : IF expression THEN expression error"""
