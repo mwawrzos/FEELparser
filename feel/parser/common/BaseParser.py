@@ -147,7 +147,7 @@ class BaseParser:
         else:
             print('unexpected end of file')
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs):
         self.lexer = Lexer()
         self.parser = yacc.yacc(module=self, **kwargs)
 

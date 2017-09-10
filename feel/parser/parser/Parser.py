@@ -369,7 +369,7 @@ class Parser(BaseParser):
         """null : NULL"""
         p[0] = AST.Null()
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs):
         super(Parser, self).__init__(**kwargs)
         self.lexer = Lexer()
 
