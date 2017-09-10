@@ -6,7 +6,7 @@ from feel.parser import AST
 
 
 # noinspection PyMethodMayBeStatic
-class TableParser:
+class TableParser(object):
     tokens = TableLexer.tokens
     precedence = [
         ('left', 'comparison_p'),

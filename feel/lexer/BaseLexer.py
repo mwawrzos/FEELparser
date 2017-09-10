@@ -14,7 +14,7 @@ NAME = NAME_START + r'(\s?(' + NAME_PART + r'|' + ADDITIONAL_NAME_SYMBOLS + r'))
 
 
 # noinspection PyMethodMayBeStatic,PyPep8Naming
-class BaseLexer:
+class BaseLexer(object):
     reserved = {
         'date': 'DATE',
         'time': 'TIME',

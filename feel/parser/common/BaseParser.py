@@ -6,7 +6,7 @@ from feel.parser import AST
 
 
 # noinspection PyMethodMayBeStatic
-class BaseParser:
+class BaseParser(object):
     tokens = Lexer.tokens
 
     precedence = [

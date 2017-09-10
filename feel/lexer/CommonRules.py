@@ -25,7 +25,7 @@ def print_context(t):
 
 
 # noinspection PyMethodMayBeStatic
-class CommonRules:
+class CommonRules(object):
     reserved = {
         'date': 'DATE',
         'time': 'TIME',

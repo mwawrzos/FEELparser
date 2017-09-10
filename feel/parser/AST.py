@@ -1,4 +1,4 @@
-class AST:
+class AST(object):
     def __init__(self, token):
         self.value = token
 

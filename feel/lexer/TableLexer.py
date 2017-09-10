@@ -7,7 +7,7 @@ from feel.lexer.BaseLexer import NAME
 
 
 # noinspection PyPep8Naming,PyMethodMayBeStatic
-class TableLexer:
+class TableLexer(object):
     reserved = {
         'date': 'DATE',
         'time': 'TIME',
