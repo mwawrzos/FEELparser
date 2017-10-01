@@ -4,7 +4,10 @@ import unittest
 from feel.parser import AST
 from feel.parser.parser.Parser import parser
 from feel.parser.simple.SimpleParser import parser as simple_parser
-from feel.parser.table.TableParser import parser as table_parser
+from feel.parser.table.TableParser import TableParser
+from utils.StoreLogger import StoreLogger
+
+table_parser = TableParser(StoreLogger())
 
 
 def operator_ast_gen(operator_ast):

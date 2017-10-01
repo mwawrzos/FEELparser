@@ -4,6 +4,8 @@ from feel.ErrorPrinters import unexpected_token
 from feel.lexer.TableLexer import TableLexer
 from feel.parser import AST
 
+from utils.PrintLogger import PrintLogger
+
 
 # noinspection PyMethodMayBeStatic
 class TableParser(object):
@@ -174,9 +176,10 @@ class TableParser(object):
         if p:
             unexpected_token(p)
         else:
-            print('unexpected end of file')
+            self.logger.log('unexpected end of file')
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        self.logger = logger
         self.lexer = TableLexer()
         self.parser = yacc.yacc(module=self, **kwargs)
 

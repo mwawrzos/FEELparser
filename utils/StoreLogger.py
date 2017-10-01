@@ -1,4 +1,4 @@
-class Logger:
+class StoreLogger:
     def __init__(self):
         self.messages = []
 
