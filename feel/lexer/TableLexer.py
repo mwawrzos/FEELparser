@@ -26,7 +26,6 @@ class TableLexer(object):
                  'NEWLINE',
                  'GTE',
                  'LTE',
-                 'NEQ',
                  'DOTS',
              ] + list(reserved.values())
 
@@ -36,7 +35,6 @@ class TableLexer(object):
 
     t_GTE = r'>='
     t_LTE = r'<='
-    t_NEQ = r'!='
     t_DOTS = r'\.\.'
 
     def t_NEWLINE(self, t):

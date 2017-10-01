@@ -1,4 +1,4 @@
-from feel.ErrorPrinters import contextual_error, missing_token_error
+from feel.ErrorPrinters import missing_token_error
 from feel.lexer.Lexer import Lexer as Lexer
 from feel.parser import AST
 from feel.parser.common.BaseParser import BaseParser
