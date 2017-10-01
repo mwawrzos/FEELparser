@@ -1,4 +1,4 @@
 class PrintLogger:
     @staticmethod
-    def log(message):
-        print(message)
+    def log(*messages):
+        print(*messages)
