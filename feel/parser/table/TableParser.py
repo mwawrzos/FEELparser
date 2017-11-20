@@ -3,6 +3,7 @@ from ply import yacc
 from feel.ErrorPrinters import unexpected_token
 from feel.lexer.TableLexer import TableLexer
 from feel.parser import AST
+from feel.parser.table import parsetab
 
 from utils.PrintLogger import PrintLogger
 
@@ -181,7 +182,7 @@ class TableParser(object):
     def __init__(self, logger=PrintLogger(), **kwargs):
         self.logger = logger
         self.lexer = TableLexer()
-        self.parser = yacc.yacc(module=self, start='unary_tests', **kwargs)
+        self.parser = yacc.yacc(tabmodule=parsetab, module=self, start='unary_tests', **kwargs)
 
     def parse(self, *args, **kwargs):
         return self.parser.parse(*args, lexer=self.lexer.lexer, **kwargs)

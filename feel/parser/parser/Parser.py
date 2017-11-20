@@ -5,6 +5,7 @@ from feel.parser.common.BaseParser import BaseParser
 
 
 # noinspection PyMethodMayBeStatic
+from feel.parser.parser import parsetab
 from utils.PrintLogger import PrintLogger
 
 
@@ -373,7 +374,7 @@ class Parser(BaseParser):
         p[0] = AST.Null()
 
     def __init__(self, logger=PrintLogger(), **kwargs):
-        super(Parser, self).__init__(logger, **kwargs)
+        super(Parser, self).__init__(parsetab, logger, **kwargs)
         self.lexer = Lexer()
 
 

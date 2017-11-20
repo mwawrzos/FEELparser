@@ -4,6 +4,7 @@ from feel.parser.common.BaseParser import BaseParser
 
 
 # noinspection PyMethodMayBeStatic
+from feel.parser.simple import parsetab
 from utils.PrintLogger import PrintLogger
 
 
@@ -49,7 +50,7 @@ class SimpleParser(BaseParser):
         p[0] = p[2]
 
     def __init__(self, logger=PrintLogger(), **kwargs):
-        super(SimpleParser, self).__init__(logger, start='simple_expressions', **kwargs)
+        super(SimpleParser, self).__init__(parsetab, logger, start='simple_expressions', **kwargs)
 
 
 parser = SimpleParser()
