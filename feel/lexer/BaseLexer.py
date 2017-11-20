@@ -3,6 +3,7 @@ import re
 from ply import lex
 
 from feel.ErrorPrinters import print_context, find_first_in_lane
+from utils.PrintLogger import PrintLogger
 
 ADDITIONAL_NAME_SYMBOLS = r'[\./\-’\+\*]'
 NAME_START_CHAR = r'[\?A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070' \
@@ -67,12 +68,13 @@ class BaseLexer(object):
     t_NAME.__doc__ = NAME
 
     def t_error(self, t):
-        print("Unexpected character: '%s'" % t.value[0],
-              'at position %d:%d' % (t.lexer.lexpos - find_first_in_lane(t), t.lexer.lineno))
-        print_context(t)
+        self.logger.log("Unexpected character: '%s'" % t.value[0],
+                        'at position %d:%d' % (t.lexer.lexpos - find_first_in_lane(t), t.lexer.lineno))
+        print_context(t, self.logger)
         t.lexer.skip(1)
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        self.logger = logger
         self.lexer = lex.lex(module=self, **kwargs)
 
     def input(self, data):

@@ -174,17 +174,17 @@ class TableParser(object):
 
     def p_error(self, p):
         if p:
-            unexpected_token(p)
+            unexpected_token(p, self.logger)
         else:
             self.logger.log('unexpected end of file')
 
     def __init__(self, logger=PrintLogger(), **kwargs):
         self.logger = logger
         self.lexer = TableLexer()
-        self.parser = yacc.yacc(module=self, **kwargs)
+        self.parser = yacc.yacc(module=self, start='unary_tests', **kwargs)
 
     def parse(self, *args, **kwargs):
         return self.parser.parse(*args, lexer=self.lexer.lexer, **kwargs)
 
 
-parser = TableParser(start='unary_tests')
+parser = TableParser()

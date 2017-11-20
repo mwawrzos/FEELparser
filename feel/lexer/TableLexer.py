@@ -7,6 +7,10 @@ from feel.lexer.BaseLexer import NAME
 
 
 # noinspection PyPep8Naming,PyMethodMayBeStatic
+from utils.PrintLogger import PrintLogger
+
+
+# noinspection PyMethodMayBeStatic
 class TableLexer(object):
     reserved = {
         'date': 'DATE',
@@ -53,9 +57,9 @@ class TableLexer(object):
         return t
 
     def t_error(self, t):
-        print("Unexpected character: '%s'" % t.value[0],
-              'at position %d:%d' % (t.lexer.lexpos - find_first_in_lane(t), t.lexer.lineno))
-        print_context(t)
+        self.logger.log("Unexpected character: '%s'" % t.value[0],
+                        'at position %d:%d' % (t.lexer.lexpos - find_first_in_lane(t), t.lexer.lineno))
+        print_context(t, self.logger)
         t.lexer.skip(1)
 
     def t_NAME(self, t):
@@ -65,7 +69,8 @@ class TableLexer(object):
 
     t_NAME.__doc__ = NAME
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        self.logger = logger
         self.lexer = lex.lex(module=self, **kwargs)
 
     def input(self, data):

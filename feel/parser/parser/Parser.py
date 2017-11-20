@@ -5,6 +5,9 @@ from feel.parser.common.BaseParser import BaseParser
 
 
 # noinspection PyMethodMayBeStatic
+from utils.PrintLogger import PrintLogger
+
+
 class Parser(BaseParser):
     tokens = Lexer.tokens
 
@@ -204,13 +207,13 @@ class Parser(BaseParser):
 
     def p_missing_then_error(self, p):
         """missing_then_error : IF expression error ELSE"""
-        missing_token_error("missing 'then' branch in 'if' expression", p[3])
+        missing_token_error("missing 'then' branch in 'if' expression", p[3], self.logger)
         self.parser.errok()
         p[0] = AST.If(p[2], AST.Null(), AST.Null())
 
     def p_missing_else_error(self, p):
         """missing_else_error : IF expression THEN expression error"""
-        missing_token_error("missing 'else' branch in 'if' expression", p[5])
+        missing_token_error("missing 'else' branch in 'if' expression", p[5], self.logger)
         self.parser.errok()
         p[0] = AST.If(p[2], p[4], AST.Null())
 
@@ -350,7 +353,7 @@ class Parser(BaseParser):
 
     def p_missing_comma_error(self, p):
         """missing_comma_error : context_entry ',' error"""
-        missing_token_error('comma is missing in a context', p[3])
+        missing_token_error('comma is missing in a context', p[3], self.logger)
         self.parser.errok()
         p[0] = []
 
@@ -369,8 +372,8 @@ class Parser(BaseParser):
         """null : NULL"""
         p[0] = AST.Null()
 
-    def __init__(self, **kwargs):
-        super(Parser, self).__init__(**kwargs)
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        super(Parser, self).__init__(logger, **kwargs)
         self.lexer = Lexer()
 
 

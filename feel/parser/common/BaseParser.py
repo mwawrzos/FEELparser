@@ -6,6 +6,10 @@ from feel.parser import AST
 
 
 # noinspection PyMethodMayBeStatic
+from utils.PrintLogger import PrintLogger
+
+
+# noinspection PyMethodMayBeStatic
 class BaseParser(object):
     tokens = Lexer.tokens
 
@@ -143,11 +147,13 @@ class BaseParser(object):
 
     def p_error(self, p):
         if p:
-            unexpected_error(p)
+            unexpected_error(p, self.logger)
         else:
-            print('unexpected end of file')
+            self.logger.log('unexpected end of file')
 
-    def __init__(self, **kwargs):
+    # noinspection SpellCheckingInspection
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        self.logger = logger
         self.lexer = Lexer()
         self.parser = yacc.yacc(module=self, **kwargs)
 

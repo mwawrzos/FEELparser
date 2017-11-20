@@ -4,6 +4,9 @@ from feel.parser.common.BaseParser import BaseParser
 
 
 # noinspection PyMethodMayBeStatic
+from utils.PrintLogger import PrintLogger
+
+
 class SimpleParser(BaseParser):
     tokens = BaseLexer.tokens
 
@@ -45,5 +48,8 @@ class SimpleParser(BaseParser):
                                    | ',' many_simple_expressions"""
         p[0] = p[2]
 
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        super(SimpleParser, self).__init__(logger, start='simple_expressions', **kwargs)
 
-parser = SimpleParser(start='simple_expressions')
+
+parser = SimpleParser()

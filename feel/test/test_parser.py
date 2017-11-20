@@ -2,12 +2,10 @@
 import unittest
 
 from feel.parser import AST
-from feel.parser.parser.Parser import parser
-from feel.parser.simple.SimpleParser import parser as simple_parser
+from feel.parser.parser.Parser import Parser
+from feel.parser.simple.SimpleParser import SimpleParser
 from feel.parser.table.TableParser import TableParser
 from utils.StoreLogger import StoreLogger
-
-table_parser = TableParser(StoreLogger())
 
 
 def operator_ast_gen(operator_ast):
@@ -82,14 +80,28 @@ SIMPLE_POSITIVE_UNARY_TESTS_AST = AST.PositiveUnaryTests([AST.Endpoint([AST.Name
 
 
 class TestParser(unittest.TestCase):
+
+    # noinspection PyPep8Naming
+    def __init__(self, methodName='runTest'):
+        super(TestParser, self).__init__(methodName)
+        self.logger = StoreLogger()
+        self.parser = Parser(self.logger)
+        self.table_parser = TableParser(self.logger)
+        self.simple_parser = SimpleParser(self.logger)
+
     def check_parser(self, str_input, ast, debug=False):
-        self.assertEqual(ast, parser.parse(str_input, debug=debug))
+        self.assertEqual(ast, self.parser.parse(str_input, debug=debug))
+
+    def check_parser_log(self, str_input, token, pos):
+        self.parser.parse(str_input)
+        self.assertEqual('unexpected token %s at position %s' % (token, pos),
+                         self.logger.messages[0])
 
     def check_simple_parser(self, str_input, ast, debug=False):
-        self.assertEqual(ast, simple_parser.parse(str_input, debug=debug))
+        self.assertEqual(ast, self.simple_parser.parse(str_input, debug=debug))
 
     def check_table_parser(self, str_input, ast, debug=False):
-        self.assertEqual(ast, table_parser.parse(str_input, debug=debug))
+        self.assertEqual(ast, self.table_parser.parse(str_input, debug=debug))
 
     def _check_simple_unary_tests_parser(self, str_input, ast, debug=False):
         pass
@@ -98,9 +110,9 @@ class TestParser(unittest.TestCase):
     def test_date_time_literal(self):
         self.check_parser(DATE_STR, DATE_AST)
         self.check_parser('time         ("a")', AST.Time('a'))
-        self.check_parser('date and time("?")', AST.DateAndTime('?'))
-        self.check_parser('duration     ("#")', AST.Duration('#'))
-        # self.check_parser('date  and time("")', None)
+        self.check_parser('date and time("a")', AST.DateAndTime('a'))
+        self.check_parser('duration     ("a")', AST.Duration('a'))
+        self.check_parser_log('date  and time("")', 'NAME{and time}', '6:1')
 
     def test_context(self):
         self.check_parser(CONTEXT_STR, CONTEXT_AST)

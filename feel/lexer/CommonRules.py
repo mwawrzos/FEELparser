@@ -2,6 +2,8 @@ import re
 
 from ply import lex
 
+from utils.PrintLogger import PrintLogger
+
 
 def find_first_in_lane(t):
     return t.lexer.lexdata.rfind('\n', 0, t.lexpos) + 1
@@ -14,12 +16,12 @@ def find_last_in_lane(t):
     return last_newline - 1
 
 
-def print_context(t):
+def print_context(t, l):
     first_in_line = find_first_in_lane(t)
     last_in_line = find_last_in_lane(t)
     token_len = len(t.value) + 2 if t.type == 'STRING_LITERAL' else len(t.value)
-    print(t.lexer.lexdata[first_in_line:last_in_line + 1])
-    print('%s%s%s' % ('~' * (t.lexpos - first_in_line),
+    l.log(t.lexer.lexdata[first_in_line:last_in_line + 1])
+    l.log('%s%s%s' % ('~' * (t.lexpos - first_in_line),
                       '^' * token_len,
                       '~' * (last_in_line - t.lexpos - token_len + 1)))
 
@@ -107,12 +109,13 @@ class CommonRules(object):
     t_NAME.__doc__ = NAME
 
     def t_error(self, t):
-        print("Unexpected character: '%s'" % t.value[0],
-              'at position %d:%d' % (t.lexer.lexpos - find_first_in_lane(t), t.lexer.lineno))
-        print_context(t)
+        self.logger.log("Unexpected character: '%s'" % t.value[0],
+                        'at position %d:%d' % (t.lexer.lexpos - find_first_in_lane(t), t.lexer.lineno))
+        print_context(t, self.logger)
         t.lexer.skip(1)
 
-    def __init__(self, **kwargs):
+    def __init__(self, logger=PrintLogger(), **kwargs):
+        self.logger = logger
         self.lexer = lex.lex(module=self, **kwargs)
 
     def input(self, data):
